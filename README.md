@@ -25,3 +25,9 @@ This dtaabse its hosted in notion and have the following columns to add the cars
 
 
 
+ ## Proxie ListAds
+
+ https://proxyscrape.com/free-proxy-list
+
+
+
