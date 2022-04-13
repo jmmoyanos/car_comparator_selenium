@@ -1,6 +1,6 @@
 # Car Comparator of second hand cars
 
-### Explanation
+## Explanation
 
 This project its meant to find the diferrences in price and quality of second hand cars. 
 
