@@ -1,35 +1,40 @@
-# car_cormaparator
+# Car Comparator of second hand cars
+
+### Explanation
 
 This project its meant to find the diferrences in price and quality of second hand cars. 
 
-## 🏗️ Tools
+### 🏗️ Tools
 
 ![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=darkgreen)
 ![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
 
-## ☁️ Cloud Storage
+### ☁️ Cloud Storage
 
 ![GCP](https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)
 
-## Input database
+### Control Comparator database
 
-This database its hosted in notion and have the following columns to add the cars to the comparation list with some filters. 
+[Notion Database](https://jmmoyano.notion.site/Cars_comparator-9f00a3afd5ed40ac99145f3560923bd6)
 
-- Name : [Brand and type]
-- Url_buy :  url of the scraping site I want to get the records. 
-- Url_com :  url of the scraping site I want to get the records. 
+This database its hosted in notion and have the following columns to add the cars to the comparation list with some filters
+
+- Name : Brand and type
 - price_min
 - price_max
 - km_min
 - km_max
 - year_min
 - year_max
+- webs:  multiselect of webs to scrap
 
-##  Webs to Scrap
+###  Webs to Scrap
 
  List of webs implemented:
 
 - Country Germany :  [modile.de](https://www.mobile.de/?lang=en)
 - Country Spain : [flexicar](https://www.flexicar.es/coches-segunda-mano/)
+
+## Getting Started
 
 ## TODOs
