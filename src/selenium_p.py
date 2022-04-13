@@ -34,6 +34,15 @@ def read_proxies(file):
         proxies = f.read().split("\n")
         return proxies
 
+def chromedriver_de():
+        
+    chrome_options = webdriver.ChromeOptions()
+    prefs = {"profile.managed_default_content_settings.images": 2}
+    chrome_options.add_experimental_option("prefs", prefs)
+
+    driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+    return driver
+
 if __name__ == "__main__":
 
         # wd = chromedriver_()

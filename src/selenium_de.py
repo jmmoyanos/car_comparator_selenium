@@ -1,16 +1,15 @@
+from black import main
 import os
-from requests import options
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-import time 
-from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from bs4 import BeautifulSoup
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
+import time
+from bs4 import BeautifulSoup 
+import pandas as pd
+import numpy as np
+import re
+from random import randrange
+from tqdm import tqdm #progress bar
 
 chromedriver = "/usr/local/bin/chromedriver"
 os.environ["webdriver.chrome.driver"] = chromedriver
@@ -26,38 +25,38 @@ def chromedriver_proxie(PROXY):
 
 def chromedriver_():
         wd = webdriver.Chrome()
-        wd.implicitly_wait(10)
+        wd.implicitly_wait(1)
         return wd
-def chromedriver_de():
-
-    chrome_options = webdriver.ChromeOptions()
-    prefs = {"profile.managed_default_content_settings.images": 2}
-    chrome_options.add_experimental_option("prefs", prefs)
-    driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
-    return driver
 
 def read_proxies(file):
         f = open(file, "r")
         proxies = f.read().split("\n")
         return proxies
 
+def chromedriver_de():
+        
+    chrome_options = webdriver.ChromeOptions()
+    prefs = {"profile.managed_default_content_settings.images": 2}
+    chrome_options.add_experimental_option("prefs", prefs)
+
+    driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+    return driver
+
 if __name__ == "__main__":
 
-        wd = chromedriver_()
+        # wd = chromedriver_()
+
         url = "https://suchen.mobile.de/fahrzeuge/search.html?dam=0&ecol=BLACK&ecol=GREY&fr=2017%3A&isSearchRequest=true&ml=%3A125000&ms=3500%3B6%3B%3B%3B&od=up&p=10000%3A20000&ref=srp&refId=2804e431-ddff-3817-0f5f-0b62cf3f7222&s=Car&sb=p&sfmr=false&vc=Car?lang=en"
+        url = "https://www.coches.net/segunda-mano/?MakeId=7&MaxKms=140000&MaxYear=2015&MinPrice=10000&MinYear=2015&ModelId=944"
         url = "https://www.flexicar.es/coches-segunda-mano/"
+        proxies = read_proxies("./proxies.txt")
+        
+        wd = chromedriver_de()
         wd.get(url)
+        time.sleep(3)
         html = wd.page_source
         soup = BeautifulSoup(html, "html.parser")
-                
-        if 'mobile.de' in url:
-                        bloques = soup.select('hitcounters')
 
-                        for link in soup.find_all('script'):
-                                if 'config' in link.get_text()[:10]:
-                                        json = link
-
-                        string_json = json.get_text()
  
                 
                 
