@@ -1,4 +1,7 @@
 beautifulsoup4==4.11.1
 selenium==4.1.3
+webdriver-manager==3.5.4
 pandas==1.4.2
 notion_df== 0.0.5
+pyyaml
+tqdm

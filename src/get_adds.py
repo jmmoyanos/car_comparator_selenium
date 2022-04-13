@@ -13,6 +13,7 @@ from datetime import datetime
 import os
 import glob
 import pickle #for saving data
+import notion_databse
 
 def clean_data(data):
     data['price'] = data['Preis'].str.replace('.', '')

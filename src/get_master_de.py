@@ -9,7 +9,7 @@ import numpy as np
 import re
 from random import randrange
 from tqdm import tqdm #progress bar
-
+import notion_databse
 
 def get_all_make_model(mobile_de_eng_base_link="https://www.mobile.de/?lang=en", save_filename="make_and_model_links.csv", lista_cars=[]):
 
@@ -111,6 +111,6 @@ def get_all_make_model(mobile_de_eng_base_link="https://www.mobile.de/?lang=en",
 
 
 if __name__ == "__main__":
-
-    lista_cars = ['Mercedes-benz A-Class', 'Volkswagen T-Roc', 'BMW X1']
+    df = notion_databse.get_notion_database()
+    lista_cars = df['Name'].unique().tolist()
     car_data_base = get_all_make_model("https://www.mobile.de/?lang=en", "make_and_model_links.csv",lista_cars)

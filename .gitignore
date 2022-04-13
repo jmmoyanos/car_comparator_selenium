@@ -27,3 +27,5 @@ pip-delete-this-directory.txt
 # Secrets
 
 src/secrets.yaml
+src/proxies.txt
+src/__pycache__
