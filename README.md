@@ -13,7 +13,7 @@ This project its meant to find the diferrences in price and quality of second ha
 
 ## Input database
 
-This dtaabse its hosted in notion and have the following columns to add the cars to the comparation list with some filters. 
+This database its hosted in notion and have the following columns to add the cars to the comparation list with some filters. 
 
  - Name - [Brand and type]
  - Url_buy - url of the scraping site I want to get the records. 
@@ -26,8 +26,9 @@ This dtaabse its hosted in notion and have the following columns to add the cars
  - year_max
 
 ## Webs to Scrap
- - Country Germany :  ![modile.de](https://www.mobile.de/?lang=en)
- - Country Spain : ![flexicar](https://www.flexicar.es/coches-segunda-mano/)
+
+ - Country Germany :  [modile.de](https://www.mobile.de/?lang=en)
+ - Country Spain : [flexicar](https://www.flexicar.es/coches-segunda-mano/)
 
 
 
