@@ -42,20 +42,23 @@ This database its hosted in notion and have the following columns to add the car
 - Python 3.8
 - Tested only on Mac M1
 
-### Development environment
+###  Environment
 
 I recommend to install the dependencies in a virtualenv. (I used conda)
+
+```bash
+conda create --name car_env python=3.8
+conda activate car_env  
+```
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Tests coverage
-
 ### Run the application
 
 ```bash
-python main.py
+python src/main.py
 ```
 
 ## TODOs

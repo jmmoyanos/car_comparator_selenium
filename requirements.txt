@@ -1,4 +1,4 @@
 bs4
 selenium
-pandas==1.2.4
-notion_df==0.0.5
+pandas
+notion_df
