@@ -2,7 +2,9 @@
 
 ## Explanation
 
-This project its meant to find the diferrences in price and quality of second hand cars. 
+This project aims to find the differences in price and quality of used cars.
+
+The idea is to scrape several second hand car websites, the main players in each country, in order to see if buying a car in germany is currently cheaper than buying it in spain.
 
 ### 🏗️ Tools
 
