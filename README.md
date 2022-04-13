@@ -37,4 +37,25 @@ This database its hosted in notion and have the following columns to add the car
 
 ## Getting Started
 
+### Prerequisites
+
+- Python 3.8
+- Tested only on Mac M1
+
+### Development environment
+
+I recommend to install the dependencies in a virtualenv. (I used conda)
+
+```bash
+pip install -r requirements.txt
+```
+
+### Tests coverage
+
+### Run the application
+
+```bash
+python main.py
+```
+
 ## TODOs
