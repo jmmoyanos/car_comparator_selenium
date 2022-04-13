@@ -2,10 +2,14 @@
 
 This project its meant to find the diferrences in price and quality of second hand cars. 
 
-The first idea its to compare the cars from two sites:
- - Country buy(Germany) :  modile.de
- - Country compare(Spain) : coches.net
+## 🏗️ Tools
 
+![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=darkgreen)
+![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
+
+## ☁️ Cloud Storage
+
+![GCP](https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)
 
 ## Input database
 
@@ -20,14 +24,10 @@ This dtaabse its hosted in notion and have the following columns to add the cars
  - km_max
  - year_min
  - year_max
- - type_gas: list of,blank any
- - 
 
-
-
- ## Proxie ListAds
-
- https://proxyscrape.com/free-proxy-list
+## Webs to Scrap
+ - Country Germany :  ![modile.de](https://www.mobile.de/?lang=en)
+ - Country Spain : ![flexicar](https://www.flexicar.es/coches-segunda-mano/)
 
 
 
