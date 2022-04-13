@@ -64,3 +64,10 @@ python src/main.py
 ```
 
 ## TODOs
+
+- [X] Mobile.de
+- [ ] Flexicar
+- [ ] Project setup
+- [ ] Airflow Dags
+- [ ] Dockerize
+- [X] requirements versions
