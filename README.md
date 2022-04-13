@@ -26,9 +26,11 @@ This database its hosted in notion and have the following columns to add the car
  - year_max
 
 ## Webs to Scrap
+ 
+ List og webs implemented
 
  - Country Germany :  [modile.de](https://www.mobile.de/?lang=en)
  - Country Spain : [flexicar](https://www.flexicar.es/coches-segunda-mano/)
 
 
-
+## TODOs
