@@ -102,10 +102,10 @@ def scrape_links_for_one_make_model(make_model_input_link , sleep, make_model_in
     #save the dataframe if save_to_csv is True
     if save_to_csv:
         #check if folder exists and if not create it
-        if not os.path.exists('data/make_model_ads_links'):
-            os.makedirs('data/make_model_ads_links')
+        if not os.path.exists('data/de/make_model_ads_links'):
+            os.makedirs('data/de/make_model_ads_links')
 
-        links_on_one_page_df.to_csv(str('data/make_model_ads_links/links_on_one_page_df' + datetime_string + '.csv'), index = False)
+        links_on_one_page_df.to_csv(str('data/de/make_model_ads_links/links_on_one_page_df' + datetime_string + '.csv'), index = False)
 
     return(links_on_one_page_df)
 
@@ -130,20 +130,18 @@ def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
     output_file = pd.concat([pd.read_csv(filename) for filename in fileList])
 
     if save_to_csv:
-        output_file.to_csv("data/make_model_ads_links_concatinated.csv", index=False)
+        output_file.to_csv("data/de/make_model_ads_links_concatinated.csv", index=False)
 
     if save_to_pickle:
-        output_file.to_pickle("data/make_model_ads_links_concatinated.pkl")
+        output_file.to_pickle("data/de/make_model_ads_links_concatinated.pkl")
 
     return(output_file)
 
 
 if __name__ == "__main__":
 
-    make_model_dat = pd.read_csv('./data/make_and_model_links.csv')
-    
-    random_numbers = np.random.randint(0, len(make_model_dat), 3)
-    
-    multi_data = multiple_link_on_multiple_pages_data(make_model_dat['link'][random_numbers], 1, make_model_dat, True)
+    make_model_dat = pd.read_csv('./data/de/make_and_model_links.csv')
+        
+    multi_data = multiple_link_on_multiple_pages_data(make_model_dat['link'], 1, make_model_dat, True)
 
-    make_model_ads_data = concatenate_dfs(indir= "data/make_model_ads_links/", save_to_csv = False, save_to_pickle = True)
+    make_model_ads_data = concatenate_dfs(indir= "data/de/make_model_ads_links/", save_to_csv = False, save_to_pickle = True)

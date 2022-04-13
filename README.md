@@ -44,7 +44,7 @@ This database its hosted in notion and have the following columns to add the car
 - Python 3.8
 - Tested only on Mac M1
 
-###  Environment
+### Environment
 
 I recommend to install the dependencies in a virtualenv. (I used conda)
 

@@ -34,7 +34,7 @@ def get_ad_data(ad_link = '', sleep_time = 5, save_to_csv = True, save_to_pickle
     driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
 
     #get the number of pages
-    driver.get(ad_link)
+    driver.get(ad_link+'?lang=en')
     time.sleep(sleep_time)
     ad_source = driver.page_source
     ad_soup = BeautifulSoup(ad_source, 'html.parser')
@@ -71,6 +71,7 @@ def get_ad_data(ad_link = '', sleep_time = 5, save_to_csv = True, save_to_pickle
     #keep rows where value is equal to the followings
     data_we_want_to_keep = ['Preis', 'Kategorie', 'Kilometerstand', 'Hubraum', 'Leistung', 'Kraftstoffart', 'Anzahl Sitzplätze', 'Getriebe', 'Erstzulassung', 'Farbe', 'Innenausstattung']
     df = df[df['description'].isin(data_we_want_to_keep)]
+    # df.columns = ['Price', 'Category', 'Mileage', 'Engine_Displacement', 'Power', 'Fuel_Type', 'Number of Seats', 'Transmission', 'First Registration', 'Color', 'Interior']
 
     # #transpose with description as column names
     #df = df.T
@@ -87,16 +88,16 @@ def get_ad_data(ad_link = '', sleep_time = 5, save_to_csv = True, save_to_pickle
     #save the dataframe if save_to_csv is True
     if save_to_csv:
         #check if folder exists and if not create it
-        if not os.path.exists('data/make_model_ads_data'):
-            os.makedirs('data/make_model_ads_data')
+        if not os.path.exists('data/de/make_model_ads_data'):
+            os.makedirs('data/de/make_model_ads_data')
 
-        df.to_csv(str('data/make_model_ads_data/links_on_one_page_df' + datetime_string + '.csv'), index = False)
+        df.to_csv(str('data/de/make_model_ads_data/links_on_one_page_df' + datetime_string + '.csv'), index = False)
 
     if save_to_pickle:
-        if not os.path.exists('data/make_model_ads_data'):
-            os.makedirs('data/make_model_ads_data')
+        if not os.path.exists('data/de/make_model_ads_data'):
+            os.makedirs('data/de/make_model_ads_data')
         
-        df.to_pickle('data/make_model_ads_data/links_on_one_page_df' + datetime_string + "pkl")
+        df.to_pickle('data/de/make_model_ads_data/links_on_one_page_df' + datetime_string + "pkl")
 
     return(df)
 
@@ -110,10 +111,10 @@ def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
     output_file = pd.concat([pd.read_csv(filename) for filename in fileList])
 
     if save_to_csv:
-        output_file.to_csv("data/make_model_ads_concatinated.csv", index=False)
+        output_file.to_csv("data/de/make_model_ads_concatinated.csv", index=False)
 
     if save_to_pickle:
-        output_file.to_pickle("data/make_model_ads_concatinated.pkl")
+        output_file.to_pickle("data/de/make_model_ads_concatinated.pkl")
 
     output_file.reset_index(drop=True, inplace=True)
 
@@ -140,7 +141,7 @@ def merge_make_model_keep_latest(data):
 
 if __name__ == '__main__' :
 
-    make_model_ads_data = pd.read_pickle("./data/make_model_ads_links_concatinated.pkl")
+    make_model_ads_data = pd.read_pickle("./data/de/make_model_ads_links_concatinated.pkl")
 
     latest_scrape = make_model_ads_data.groupby(['car_make', 'car_model'], dropna=False).agg(number_of_ads=('ad_link', 'count'), latest_scrape=('download_date_time', 'max'))
     latest_scrape = latest_scrape.reset_index()
@@ -159,7 +160,12 @@ if __name__ == '__main__' :
         ad_link = make_model_ads_data_latest['ad_link'][i]
         data = get_ad_data(ad_link = ad_link, sleep_time = 5, save_to_csv = True, save_to_pickle = True)
 
-    individual_ads_data = concatenate_dfs("/data/make_model_ads_data/",  True, True)
+    individual_ads_data = concatenate_dfs("./data/de/make_model_ads_data/",  True, True)
 
-    # ads_df = merge_make_model_keep_latest(data = individual_ads_data)
+    ads_df = merge_make_model_keep_latest(data = individual_ads_data)
     ads_df_clean = clean_data(data = individual_ads_data)
+    ads_df_clean.columns = ['Price', 'Category', 'Mileage', 'Engine_displacement', 'Power',
+       'fuel_type', 'number_of_seats', 'transmission', 'first_registration',
+       'color', 'interior', 'link', 'download_date_time', 'price']
+
+    ads_df_clean

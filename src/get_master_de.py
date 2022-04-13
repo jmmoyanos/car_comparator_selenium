@@ -113,4 +113,5 @@ def get_all_make_model(mobile_de_eng_base_link="https://www.mobile.de/?lang=en",
 if __name__ == "__main__":
     df = notion_databse.get_notion_database()
     lista_cars = df['Name'].unique().tolist()
-    car_data_base = get_all_make_model("https://www.mobile.de/?lang=en", "make_and_model_links.csv",lista_cars)
+    car_data_base = get_all_make_model("https://www.mobile.de/?lang=en", 
+                                        "data/de/make_and_model_links.csv",lista_cars)
