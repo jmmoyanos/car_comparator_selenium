@@ -128,6 +128,10 @@ def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
     print("Found this many CSVs: ", len(fileList), " In this folder: ", str(os.getcwd()) + "/" + str(indir))
 
     output_file = pd.concat([pd.read_csv(filename) for filename in fileList])
+    print(output_file.shape)
+    cols = list(set(output_file.columns) - set(['download_date_time']))
+    output_file = output_file.drop_duplicates(subset=cols,keep='last')
+    print(output_file.shape)
 
     if save_to_csv:
         output_file.to_csv("data/de/make_model_ads_links_concatinated.csv", index=False)
@@ -144,4 +148,4 @@ if __name__ == "__main__":
         
     multi_data = multiple_link_on_multiple_pages_data(make_model_dat['link'], 1, make_model_dat, True)
 
-    make_model_ads_data = concatenate_dfs(indir= "data/de/make_model_ads_links/", save_to_csv = False, save_to_pickle = True)
+    make_model_ads_data = concatenate_dfs(indir= "data/de/make_model_ads_links/", save_to_csv = True, save_to_pickle = False)

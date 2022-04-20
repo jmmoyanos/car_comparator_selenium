@@ -9,12 +9,17 @@ import numpy as np
 import re
 from random import randrange
 from tqdm import tqdm #progress bar
-import notion_databse
+import utils
+import os
 
-def get_all_make_model(mobile_de_eng_base_link="https://www.mobile.de/?lang=en", save_filename="make_and_model_links.csv", lista_cars=[]):
+def get_all_make_model(mobile_de_eng_base_link="https://www.mobile.de/?lang=en", save_filename="make_and_model_links.csv", list_cars=[]):
 
     chrome_options = webdriver.ChromeOptions()
-    prefs = {"profile.managed_default_content_settings.images": 2}
+    list_cars_makes = [car.split(' ')[0] for car in list_cars]
+    prefs = {"profile.managed_default_content_settings.images": 2, 
+        "translate_whitelists": {"de":"en"},
+          "translate":{"enabled":"true"}
+        }
     chrome_options.add_experimental_option("prefs", prefs)
 
     driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
@@ -45,6 +50,7 @@ def get_all_make_model(mobile_de_eng_base_link="https://www.mobile.de/?lang=en",
     car_base_make_data = car_base_make_data[~car_base_make_data.car_make.isin(car_make_filter_out)]
     car_base_make_data = car_base_make_data.drop_duplicates()
     car_base_make_data = car_base_make_data.reset_index(drop=True)
+    car_base_make_data = car_base_make_data[car_base_make_data['car_make'].isin(list_cars_makes)]
 
     car_base_model_data = pd.DataFrame()
 
@@ -79,13 +85,13 @@ def get_all_make_model(mobile_de_eng_base_link="https://www.mobile.de/?lang=en",
 
     ###MAKE THE FILTERING HEREEEE
     
-    if len(lista_cars) > 0:
+    if len(list_cars) > 0:
         lista_dfs = []
 
-        for car in lista_cars:
+        for car in list_cars:
             brand = car.split(" ")[0]
             model = car.split(" ")[1]
-            lista_dfs.append(car_base_model_data[car_base_model_data["car_make"].str.contains(brand) & 
+            lista_dfs.append(car_base_model_data[(car_base_model_data["car_make"] == brand) & 
                             (car_base_model_data["car_model"] == model)])
 
         car_base_model_data = pd.concat(lista_dfs)
@@ -93,10 +99,8 @@ def get_all_make_model(mobile_de_eng_base_link="https://www.mobile.de/?lang=en",
 
     car_data_base = pd.merge(car_base_make_data, car_base_model_data, left_on=['car_make'], right_on=['car_make'], how='right')
     car_data_base = car_data_base[~car_data_base.id2.isin([""])]
-    car_data_base = car_data_base[car_data_base.id2.apply(lambda x: x.isnumeric())]
+    # car_data_base = car_data_base[car_data_base.id2.apply(lambda x: x.isnumeric())]
     car_data_base = car_data_base.drop_duplicates()
-
-
 
     #####
     
@@ -111,7 +115,11 @@ def get_all_make_model(mobile_de_eng_base_link="https://www.mobile.de/?lang=en",
 
 
 if __name__ == "__main__":
-    df = notion_databse.get_notion_database()
-    lista_cars = df['Name'].unique().tolist()
+    df = utils.get_notion_database()
+    list_cars = df['Name'].unique().tolist()
+
+    if not os.path.exists('data/de'):
+            os.makedirs('data/de')
+
     car_data_base = get_all_make_model("https://www.mobile.de/?lang=en", 
-                                        "data/de/make_and_model_links.csv",lista_cars)
+                                        "data/de/make_and_model_links.csv",list_cars)

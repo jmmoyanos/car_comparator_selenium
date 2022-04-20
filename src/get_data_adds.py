@@ -13,28 +13,38 @@ from datetime import datetime
 import os
 import glob
 import pickle #for saving data
-import notion_databse
+import storage
+
 
 def clean_data(data):
-    data['price'] = data['Preis'].str.replace('.', '')
+    data['price'] = data['Price'].str.replace(',', '')
     data['price'] = data['price'].str.extract('(\d+)').astype(int, errors='ignore')
 
     data = data[~data['price'].isna()]
     data['price'] = data['price'].astype(int)
-
+    
+    data['Mileage'] = data['Mileage'].str.replace('.', '')
+    data['Mileage'] = data['Mileage'].str.extract('(\d+)').astype(int, errors='ignore')
+    data = data[~data['Mileage'].isna()]
+    data['Mileage'] = data['Mileage'].astype(int)
+    
+    data['year'] = data['First Registration'].apply(lambda x : x.split('/')[1])
+    data['month'] = data['First Registration'].apply(lambda x : x.split('/')[0])
+    data['price_category'] = data['Price'].str.extract('([a-zA-Z]+)')
     return data
 
 def get_ad_data(ad_link = '', sleep_time = 5, save_to_csv = True, save_to_pickle = True):
     
     chrome_options = webdriver.ChromeOptions()
-    prefs = {"profile.managed_default_content_settings.images": 2} # this is to not load images
+    # prefs = {"profile.managed_default_content_settings.images": 2} # this is to not load images
+    prefs = {"profile.managed_default_content_settings.images": 2}
     chrome_options.add_experimental_option("prefs", prefs)
 
     #start a driver
     driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
 
     #get the number of pages
-    driver.get(ad_link+'?lang=en')
+    driver.get(ad_link + '%3Flang%3Den&lang=en')
     time.sleep(sleep_time)
     ad_source = driver.page_source
     ad_soup = BeautifulSoup(ad_source, 'html.parser')
@@ -69,7 +79,7 @@ def get_ad_data(ad_link = '', sleep_time = 5, save_to_csv = True, save_to_pickle
     df = pd.DataFrame(list(zip(description_list, value_list)), columns = ['description', 'value'])
 
     #keep rows where value is equal to the followings
-    data_we_want_to_keep = ['Preis', 'Kategorie', 'Kilometerstand', 'Hubraum', 'Leistung', 'Kraftstoffart', 'Anzahl Sitzplätze', 'Getriebe', 'Erstzulassung', 'Farbe', 'Innenausstattung']
+    data_we_want_to_keep = ['Price', 'Category', 'Mileage', 'Cubic Capacity', 'Power', 'Fuel', 'Number of Seats', 'Gearbox','Energy efficiency class', 'First Registration', 'Colour', 'Interior Design','Emissions Sticker','Parking sensors', 'Energy efficiency class']
     df = df[df['description'].isin(data_we_want_to_keep)]
     # df.columns = ['Price', 'Category', 'Mileage', 'Engine_Displacement', 'Power', 'Fuel_Type', 'Number of Seats', 'Transmission', 'First Registration', 'Color', 'Interior']
 
@@ -107,15 +117,15 @@ def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
 
     fileList=glob.glob(str(str(indir) + "*.csv"))
     print("Found this many CSVs: ", len(fileList), " In this folder: ", str(os.getcwd()) + "/" + str(indir))
-
     output_file = pd.concat([pd.read_csv(filename) for filename in fileList])
+    cols = list(set(output_file.columns) - set(['download_date_time']))
+    output_file = output_file.drop_duplicates(subset=cols,keep='last')
 
     if save_to_csv:
         output_file.to_csv("data/de/make_model_ads_concatinated.csv", index=False)
 
     if save_to_pickle:
         output_file.to_pickle("data/de/make_model_ads_concatinated.pkl")
-
     output_file.reset_index(drop=True, inplace=True)
 
     return(output_file)
@@ -141,7 +151,7 @@ def merge_make_model_keep_latest(data):
 
 if __name__ == '__main__' :
 
-    make_model_ads_data = pd.read_pickle("./data/de/make_model_ads_links_concatinated.pkl")
+    make_model_ads_data = pd.read_csv("./data/de/make_model_ads_links_concatinated.csv")
 
     latest_scrape = make_model_ads_data.groupby(['car_make', 'car_model'], dropna=False).agg(number_of_ads=('ad_link', 'count'), latest_scrape=('download_date_time', 'max'))
     latest_scrape = latest_scrape.reset_index()
@@ -158,14 +168,18 @@ if __name__ == '__main__' :
 
     for i in tqdm(range(len_of_links)):
         ad_link = make_model_ads_data_latest['ad_link'][i]
-        data = get_ad_data(ad_link = ad_link, sleep_time = 5, save_to_csv = True, save_to_pickle = True)
+        data = get_ad_data(ad_link = ad_link, sleep_time = 5, save_to_csv = True, save_to_pickle = False)
 
     individual_ads_data = concatenate_dfs("./data/de/make_model_ads_data/",  True, True)
 
     ads_df = merge_make_model_keep_latest(data = individual_ads_data)
-    ads_df_clean = clean_data(data = individual_ads_data)
-    ads_df_clean.columns = ['Price', 'Category', 'Mileage', 'Engine_displacement', 'Power',
-       'fuel_type', 'number_of_seats', 'transmission', 'first_registration',
-       'color', 'interior', 'link', 'download_date_time', 'price']
+    ads_df_clean = clean_data(data = ads_df)
 
-    ads_df_clean
+
+    if not os.path.exists('data/de/final_data'):
+            os.makedirs('data/de/final_data')
+
+    now = datetime.now() 
+    datetime_string = str(now.strftime("%Y%m%d_%H%M%S"))
+    ads_df_clean['audit_date'] = datetime_string
+    ads_df_clean.to_csv(f'./data/de/final_data/scrap_mobilede_{datetime_string}.csv', index=False)

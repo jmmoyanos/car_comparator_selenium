@@ -66,7 +66,7 @@ python src/main.py
 ## TODOs
 
 - [X] requirements versions
-- [ ] Google Drive storage
+- [X] Google Drive storage
 - [X] Mobile.de
 - [ ] Flexicar
 - [ ] Project setup
