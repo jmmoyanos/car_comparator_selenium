@@ -34,4 +34,7 @@ src/data/
 # archive
 
 archive
-notebooks
+
+# notebooks
+
+notebooks/
