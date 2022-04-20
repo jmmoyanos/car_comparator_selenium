@@ -12,13 +12,13 @@ from tqdm import tqdm #progress bar
 import utils
 import os
 
-def get_all_make_model(mobile_de_eng_base_link="https://www.mobile.de/?lang=en", save_filename="make_and_model_links.csv", list_cars=[]):
+def get_all_make_model(mobile_de_eng_base_link, save_filename, df_cars):
+
+    list_cars = df_cars['Name'].unique().tolist()
 
     chrome_options = webdriver.ChromeOptions()
     list_cars_makes = [car.split(' ')[0] for car in list_cars]
-    prefs = {"profile.managed_default_content_settings.images": 2, 
-        "translate_whitelists": {"de":"en"},
-          "translate":{"enabled":"true"}
+    prefs = {"profile.managed_default_content_settings.images": 2
         }
     chrome_options.add_experimental_option("prefs", prefs)
 
@@ -106,6 +106,8 @@ def get_all_make_model(mobile_de_eng_base_link="https://www.mobile.de/?lang=en",
     
     car_data_base['link'] = "https://suchen.mobile.de/fahrzeuge/search.html?dam=0&isSearchRequest=true&ms=" + car_data_base['id1'] + ";" + car_data_base['id2'] +  "&ref=quickSearch&sfmr=false&vc=Car"
     car_data_base = car_data_base.reset_index(drop=True)
+    car_data_base['Name'] = car_data_base['car_make'] + ' ' +car_data_base['car_model']
+    car_data_base = car_data_base.merge(df_cars, on='Name', how='inner')
 
     if len(save_filename) > 0:
         car_data_base.to_csv(save_filename, encoding='utf-8', index=False)
@@ -115,11 +117,13 @@ def get_all_make_model(mobile_de_eng_base_link="https://www.mobile.de/?lang=en",
 
 
 if __name__ == "__main__":
-    df = utils.get_notion_database()
-    list_cars = df['Name'].unique().tolist()
+
+    df_cars = utils.get_notion_database('modile')
+
 
     if not os.path.exists('data/de'):
             os.makedirs('data/de')
 
-    car_data_base = get_all_make_model("https://www.mobile.de/?lang=en", 
-                                        "data/de/make_and_model_links.csv",list_cars)
+    car_data_base = get_all_make_model( "https://www.mobile.de/?lang=en", 
+                                        "data/de/make_and_model_links.csv",
+                                        df_cars)

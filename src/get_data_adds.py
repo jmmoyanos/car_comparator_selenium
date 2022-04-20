@@ -28,8 +28,8 @@ def clean_data(data):
     data = data[~data['Mileage'].isna()]
     data['Mileage'] = data['Mileage'].astype(int)
     
-    data['year'] = data['First Registration'].apply(lambda x : x.split('/')[1])
-    data['month'] = data['First Registration'].apply(lambda x : x.split('/')[0])
+    # data['year'] = data['First Registration'].apply(lambda x : str(x).split('/')[1])
+    # data['month'] = data['First Registration'].apply(lambda x : str(x).split('/')[0])
     data['price_category'] = data['Price'].str.extract('([a-zA-Z]+)')
     return data
 
@@ -170,7 +170,7 @@ if __name__ == '__main__' :
         ad_link = make_model_ads_data_latest['ad_link'][i]
         data = get_ad_data(ad_link = ad_link, sleep_time = 5, save_to_csv = True, save_to_pickle = False)
 
-    individual_ads_data = concatenate_dfs("./data/de/make_model_ads_data/",  True, True)
+    individual_ads_data = concatenate_dfs("./data/de/make_model_ads_data/",  True, False)
 
     ads_df = merge_make_model_keep_latest(data = individual_ads_data)
     ads_df_clean = clean_data(data = ads_df)

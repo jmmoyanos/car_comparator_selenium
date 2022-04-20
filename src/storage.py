@@ -20,8 +20,10 @@ class GStorage():
 
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
     
-    bucket = GStorage('car_comparator')
-    df = bucket.read_file('de/make_and_model_links.csv')
-    df
+#     bucket = GStorage('car_comparator')
+#     df = bucket.read_file('de/make_and_model_links.csv')
+#     df
+    # bucket = storage.GStorage('car_comparator')
+    # bucket.write_file('./data/de/final_data/first_scrap.csv','first_scrap')

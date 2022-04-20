@@ -14,7 +14,7 @@ import os
 import glob
 import pickle #for saving data
 
-def scrape_links_for_one_make_model(make_model_input_link , sleep, make_model_input_data, save_to_csv):
+def scrape_links_for_one_make_model(make_model_dat,sleep, save_to_csv):
 
     chrome_options = webdriver.ChromeOptions()
     prefs = {"profile.managed_default_content_settings.images": 2} # this is to not load images
@@ -23,12 +23,24 @@ def scrape_links_for_one_make_model(make_model_input_link , sleep, make_model_in
     #start a driver
     driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
 
+    year_min = make_model_dat['year_min']
+    year_max = make_model_dat['year_max']
+    km_max = make_model_dat['km_max']
+    price_min = make_model_dat['price_min']
+    price_max = make_model_dat['price_max']
+
+    str_1 = make_model_dat['link'][:73]
+    str_2 = make_model_dat['link'][73:]
+    str_3 = f"&fr={year_min}%3A{year_max}&ml=%3A{km_max}&ms={make_model_dat['id1']}%3B6%3B%3B%3B&p={price_min}%3A{price_max}"
+
+    make_model_input_link = str_1 + str_3 + str_2
+
     #get the number of pages
     driver.get(make_model_input_link)
     make_model_link_lastpage_source = driver.page_source
     make_model_link_soup = BeautifulSoup(make_model_link_lastpage_source, 'html.parser')
 
-    last_button = make_model_link_soup.findAll('span', {'class': 'btn btn--muted btn--s'})
+    last_button = make_model_link_soup.findAll('span', {'class': 'btn btn--secondary btn--l'})
     
     #if there is only one page, then this gives an error so we need to check for that
     try:
@@ -93,7 +105,7 @@ def scrape_links_for_one_make_model(make_model_input_link , sleep, make_model_in
     datetime_string = str(now.strftime("%Y%m%d_%H%M%S"))
 
     links_on_one_page_df['download_date_time'] = datetime_string
-
+    make_model_input_data = pd.DataFrame(make_model_dat).T
     #check is the make and model is in the dataframe
     if isinstance(make_model_input_data, pd.DataFrame):
         #join the dataframes to get make and model information
@@ -109,13 +121,16 @@ def scrape_links_for_one_make_model(make_model_input_link , sleep, make_model_in
 
     return(links_on_one_page_df)
 
-def multiple_link_on_multiple_pages_data(make_model_input_links, sleep, make_model_input_data, save_to_csv):
+def multiple_link_on_multiple_pages_data(make_model_dat, sleep, save_to_csv):
 
     multiple_make_model_data = pd.DataFrame()
-
-    for one_make_model_link in make_model_input_links:
+    lenght = make_model_dat.shape[0]
+    for i in range(lenght):
         
-        one_page_adds = scrape_links_for_one_make_model(make_model_input_link = one_make_model_link, sleep = sleep, make_model_input_data = make_model_input_data, save_to_csv = save_to_csv)
+        one_page_adds = scrape_links_for_one_make_model(make_model_dat.loc[i],
+                                                        sleep = sleep, 
+                                                        save_to_csv = save_to_csv)
+
         multiple_make_model_data = pd.concat([multiple_make_model_data, one_page_adds], ignore_index=True)
     
     return(multiple_make_model_data)
@@ -128,10 +143,9 @@ def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
     print("Found this many CSVs: ", len(fileList), " In this folder: ", str(os.getcwd()) + "/" + str(indir))
 
     output_file = pd.concat([pd.read_csv(filename) for filename in fileList])
-    print(output_file.shape)
+
     cols = list(set(output_file.columns) - set(['download_date_time']))
     output_file = output_file.drop_duplicates(subset=cols,keep='last')
-    print(output_file.shape)
 
     if save_to_csv:
         output_file.to_csv("data/de/make_model_ads_links_concatinated.csv", index=False)
@@ -146,6 +160,8 @@ if __name__ == "__main__":
 
     make_model_dat = pd.read_csv('./data/de/make_and_model_links.csv')
         
-    multi_data = multiple_link_on_multiple_pages_data(make_model_dat['link'], 1, make_model_dat, True)
+    multi_data = multiple_link_on_multiple_pages_data(make_model_dat,
+                                                      1, 
+                                                      True)
 
     make_model_ads_data = concatenate_dfs(indir= "data/de/make_model_ads_links/", save_to_csv = True, save_to_pickle = False)
