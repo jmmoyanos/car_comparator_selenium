@@ -1,7 +1,8 @@
-from black import main
+# from black import main
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 import time
 from bs4 import BeautifulSoup 
 import pandas as pd
@@ -57,7 +58,7 @@ def get_all_make_model(mobile_de_eng_base_link, save_filename, df_cars):
     for one_make in tqdm(car_base_make_data['car_make'], "Progress: "):
 
         make_string = "//select[@name='mk']/option[text()='{}']".format(one_make)
-        driver.find_element_by_xpath(make_string).click()
+        driver.find_element(by=By.XPATH, value=make_string).click()
         time.sleep(3)
 
         base_source = driver.page_source

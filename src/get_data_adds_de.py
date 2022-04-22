@@ -1,6 +1,8 @@
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+
 import time
 from bs4 import BeautifulSoup 
 import pandas as pd
