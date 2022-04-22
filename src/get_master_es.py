@@ -28,7 +28,6 @@ def get_all_make_model(flexicar_base_link, save_filename, df_cars):
     brand_string_button = '//*[@id="brand-select"]'
     model_string_button = '//*[@id="model-select"]'
     make_out_page_brands = '//*[@id="menu-brands"]'
-    make_out_page_models = '//*[@id="menu-models"]'
 
     lista_makes = []
     lista_models = []
