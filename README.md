@@ -57,18 +57,29 @@ conda activate car_env
 pip install -r requirements.txt
 ```
 
+### Config Google Storage Secrets
+
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS="/path/client_secrets.json"
+```
+
 ### Run the application
 
 ```bash
 python src/main.py
 ```
 
+## Docker 
+
+In progress
+
+Having problems with the selenium scraper
+
 ## TODOs
 
 - [X] requirements versions
-- [X] Google Drive storage
+- [X] Google Storage
 - [X] Mobile.de
-- [ ] Flexicar
-- [ ] Project setup
-- [ ] Airflow Dags
+- [X] flexicar
 - [ ] Dockerize
+- [ ] Project setup
