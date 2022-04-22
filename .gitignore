@@ -41,4 +41,4 @@ notebooks/
 
 # Docker 
 
-docker
+docker/secrets
