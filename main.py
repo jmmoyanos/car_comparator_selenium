@@ -4,7 +4,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "-s",
     "--site",
-    help="names, to scrape web selling second hand cars separated by ,",
+    help="website namesto scrape second hand cars separated by ,",
     required=True,
     default=['flexicar,mobile_de']
 )
