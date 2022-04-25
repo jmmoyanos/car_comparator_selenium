@@ -2,10 +2,10 @@ import yaml
 from google.cloud import storage
 import pandas as pd
 import notion_df
-
+import os.path
 def read_secrets_yaml():
 
-    with open('./secrets/secrets.yaml') as file:
+    with open(os.path.dirname(__file__) + '/secrets/secrets.yaml') as file:
         # The FullLoader parameter handles the conversion from YAML
         # scalar values to Python the dictionary format
         secrets = yaml.load(file, Loader=yaml.FullLoader)

@@ -14,8 +14,8 @@ def main():
         search.send_keys('Python')
         search.send_keys(Keys.RETURN)
 
-        time.sleep(3)
-        driver.save_screenshot('search.png')
+        time.sleep(30)
+        #driver.save_screenshot('search.png')
     finally:
         driver.close()
         driver.quit()

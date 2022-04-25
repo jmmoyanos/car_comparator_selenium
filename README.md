@@ -67,10 +67,16 @@ export GOOGLE_APPLICATION_CREDENTIALS="/path/client_secrets.json"
 ### Run the application
 
 ```bash
-python src/main.py
+python main.py
 ```
 
-## Docker 
+ or to specify the site put the sites separated by ,
+
+ ```bash
+python main.py --site flexicar,mobile_de
+```
+
+## Docker
 
 In progress
 
