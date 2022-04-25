@@ -3,6 +3,11 @@ from google.cloud import storage
 import pandas as pd
 import notion_df
 import os.path
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
 def read_secrets_yaml():
 
     with open(os.path.dirname(__file__) + '/secrets/secrets.yaml') as file:
@@ -23,3 +28,22 @@ def get_notion_database(name):
     # df = df[df['webs'].str.contains(name)].drop('webs', axis=0)
 
     return df
+
+def start_driver_selenium(option):
+    
+    chrome_options = webdriver.ChromeOptions()
+    prefs = {"profile.managed_default_content_settings.images": 2}
+    chrome_options.add_experimental_option("prefs", prefs)
+
+    if option == 'docker':
+        
+        driver = webdriver.Remote(
+                desired_capabilities=DesiredCapabilities.CHROME,
+                command_executor="http://127.0.0.1:4444/wd/hub",
+                options=chrome_options
+            )
+    
+    elif option=='local':
+        driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+    
+    return driver

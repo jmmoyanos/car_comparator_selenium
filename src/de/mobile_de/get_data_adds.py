@@ -15,7 +15,7 @@ from datetime import datetime
 import os
 import glob
 import pickle #for saving data
-import src.storage
+from src.utils import start_driver_selenium
 
 
 def clean_data(data):
@@ -35,22 +35,16 @@ def clean_data(data):
     data['price_category'] = data['Price'].str.extract('([a-zA-Z]+)')
     return data
 
-def get_ad_data(ad_link = '', sleep_time = 5, save_to_csv = True, save_to_pickle = True):
+def get_ad_data(option, ad_link = '', sleep_time = 5, save_to_csv = True, save_to_pickle = True):
     
-    chrome_options = webdriver.ChromeOptions()
-    # prefs = {"profile.managed_default_content_settings.images": 2} # this is to not load images
-    prefs = {"profile.managed_default_content_settings.images": 2}
-    chrome_options.add_experimental_option("prefs", prefs)
-
-    #start a driver
-    driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+    driver = start_driver_selenium(option)
 
     #get the number of pages
     driver.get(ad_link + '%3Flang%3Den&lang=en')
     time.sleep(sleep_time)
     ad_source = driver.page_source
     ad_soup = BeautifulSoup(ad_source, 'html.parser')
-    driver.close()
+    driver.quit()
 
     try:
         table_pre = ad_soup.find("div", { "class" : "cBox-body cBox-body--technical-data"})
@@ -152,7 +146,7 @@ def merge_make_model_keep_latest(data):
 
 
 # if __name__ == '__main__' :
-def main():
+def main(option):
     make_model_ads_data = pd.read_csv("./data/mobile_de/make_model_ads_links_concatinated.csv")
 
     latest_scrape = make_model_ads_data.groupby(['car_make', 'car_model'], dropna=False).agg(number_of_ads=('ad_link', 'count'), latest_scrape=('download_date_time', 'max'))
@@ -170,7 +164,7 @@ def main():
 
     for i in tqdm(range(len_of_links)):
         ad_link = make_model_ads_data_latest['ad_link'][i]
-        data = get_ad_data(ad_link = ad_link, sleep_time = 5, save_to_csv = True, save_to_pickle = False)
+        data = get_ad_data(option, ad_link = ad_link, sleep_time = 5, save_to_csv = True, save_to_pickle = False)
 
     individual_ads_data = concatenate_dfs("./data/mobile_de/make_model_ads_data/",  True, False)
 

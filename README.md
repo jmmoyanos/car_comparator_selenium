@@ -78,9 +78,28 @@ python main.py --site flexicar,mobile_de
 
 ## Docker
 
-In progress
+### ARM
 
-Having problems with the selenium scraper
+For dockerizing selenium its used selenium-grid for ARM, because the app hase been developed in arm platform
+repo [docker-selenium-arm](https://github.com/seleniumhq-community/docker-seleniarm.git)
+
+To build the images, run build.sh from the root directory of this repo, and specify your architecture, either arm64, arm/v7, or amd64:
+
+```bash
+./build.sh arm64    # or arm/v7 or amd64
+```
+
+To start the container image, run:
+
+```bash
+docker run --rm -it -p 4444:4444 -p 5900:5900 -p 7900:7900 --shm-size 3g local-seleniarm/standalone-chromium:latest
+```
+
+### AMD and other
+
+follow instructions : 
+
+[docker-selenium](https://github.com/SeleniumHQ/docker-selenium)
 
 ## TODOs
 
@@ -89,5 +108,6 @@ Having problems with the selenium scraper
 - [X] Mobile.de
 - [X] flexicar
 - [ ] Wallapop
-- [ ] Dockerize
+- [X] Dockerize
 - [ ] Project setup
+- [ ] improve main

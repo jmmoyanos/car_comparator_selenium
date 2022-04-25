@@ -1,0 +1,3 @@
+[submodule "docker-seleiarm"]
+	path = docker-seleiarm
+	url = https://github.com/seleniumhq-community/docker-seleniarm.git

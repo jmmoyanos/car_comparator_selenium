@@ -13,18 +13,13 @@ import os
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from src.utils import get_notion_database
+from src.utils import get_notion_database, start_driver_selenium
 
 
 def click_wait(driver,make):
     WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, make))).click()
 
-def get_all_make_model(flexicar_base_link, save_filename, df_cars):
-   
-    chrome_options = webdriver.ChromeOptions()
-    prefs = {"profile.managed_default_content_settings.images": 2
-        }
-    chrome_options.add_experimental_option("prefs", prefs)
+def get_all_make_model(option, flexicar_base_link, save_filename, df_cars):
 
     brand_string_button = '//*[@id="brand-select"]'
     model_string_button = '//*[@id="model-select"]'
@@ -35,17 +30,14 @@ def get_all_make_model(flexicar_base_link, save_filename, df_cars):
 
     i=1
 
-    while(i<4):
+    while(i<15):
         try:
             list_ = []
-            driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+            driver = start_driver_selenium(option)
             driver.get(flexicar_base_link)
             time.sleep(0.5)
             driver.execute_script("window.scrollTo(0, 250)")
             time.sleep(1.5)
-            #base_source = driver.page_source
-            #base_soup = BeautifulSoup(base_source, 'html.parser')
-            time.sleep(0.5)
             driver.find_element(by=By.XPATH, value=brand_string_button).click()
             make_string = f'//*[@id="menu-brands"]/div[3]/ul/li[{i}]'
             time.sleep(0.3)
@@ -64,6 +56,7 @@ def get_all_make_model(flexicar_base_link, save_filename, df_cars):
             #driver.find_element(by=By.XPATH, value=model_string_button).click()
             click_wait(driver,model_string_button)
             time.sleep(0.3)
+            print(make)
             try:
                 model_make_string = '//*[@id="menu-models"]/div[3]/ul/li'
                 time.sleep(0.1)
@@ -94,6 +87,11 @@ def get_all_make_model(flexicar_base_link, save_filename, df_cars):
     {'car_make': lista_makes,
      'id1': lista_models,
     })
+
+    try:
+        driver.quit()
+    except:
+        print("driver closed")
 
     # explode and set ids and transform car_model and car_make columns
     car_base_make_data = car_base_make_data.explode('id1').reset_index(drop=True)
@@ -130,18 +128,7 @@ def get_all_make_model(flexicar_base_link, save_filename, df_cars):
 
 
 # if __name__ == "__main__":
-
-#     df_cars = get_notion_database('flexicar')
-
-
-#     if not os.path.exists('data/es'):
-#             os.makedirs('data/es')
-    
-
-#     car_data_base = get_all_make_model( "https://www.flexicar.es/", 
-#                                         "data/es/make_and_model_links.csv",
-#                                         df_cars)
-def main():
+def main(option):
 
     df_cars = get_notion_database('flexicar')
 
@@ -150,7 +137,8 @@ def main():
             os.makedirs('data/flexicar/')
     
 
-    car_data_base = get_all_make_model( "https://www.flexicar.es/", 
+    car_data_base = get_all_make_model( option,
+                                        "https://www.flexicar.es/", 
                                         "data/flexicar/make_and_model_links.csv",
                                         df_cars)
     return car_data_base

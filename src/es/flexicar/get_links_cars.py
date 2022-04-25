@@ -15,8 +15,9 @@ from datetime import datetime
 import os
 import glob
 import pickle #for saving data
+from src.utils import start_driver_selenium
 
-def scrape_links_for_one_make_model(make_model_dat,sleep, save_to_csv):
+def scrape_links_for_one_make_model(option, make_model_dat,sleep, save_to_csv):
 
     year_min = make_model_dat['year_min']
     year_max = make_model_dat['year_max']
@@ -28,12 +29,7 @@ def scrape_links_for_one_make_model(make_model_dat,sleep, save_to_csv):
 
     make_model_input_link = link + str_filter
 
-    chrome_options = webdriver.ChromeOptions()
-    prefs = {"profile.managed_default_content_settings.images": 2} # this is to not load images
-    chrome_options.add_experimental_option("prefs", prefs)
-
-    #start a driver
-    driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+    driver = start_driver_selenium(option)
 
     driver.get(make_model_input_link)
     time.sleep(sleep)
@@ -88,13 +84,13 @@ def scrape_links_for_one_make_model(make_model_dat,sleep, save_to_csv):
     driver.quit()
     return(links_on_one_page_df)
 
-def multiple_link_on_multiple_pages_data(make_model_dat, sleep, save_to_csv):
+def multiple_link_on_multiple_pages_data(option, make_model_dat, sleep, save_to_csv):
 
     multiple_make_model_data = pd.DataFrame()
     lenght = make_model_dat.shape[0]
     for i in range(lenght):
         
-        one_page_adds = scrape_links_for_one_make_model(make_model_dat.loc[i],
+        one_page_adds = scrape_links_for_one_make_model(option, make_model_dat.loc[i],
                                                         sleep = sleep, 
                                                         save_to_csv = save_to_csv)
 
@@ -124,11 +120,11 @@ def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
 
 
 # if __name__ == "__main__":
-def main():
+def main(option):
 
     make_model_dat = pd.read_csv('./data/flexicar/make_and_model_links.csv')
         
-    multi_data = multiple_link_on_multiple_pages_data(make_model_dat,
+    multi_data = multiple_link_on_multiple_pages_data(option,make_model_dat,
                                                       1, 
                                                       True)
 

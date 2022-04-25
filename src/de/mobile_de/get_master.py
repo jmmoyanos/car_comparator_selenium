@@ -10,20 +10,15 @@ import numpy as np
 import re
 from random import randrange
 from tqdm import tqdm #progress bar
-from src.utils import get_notion_database
+from src.utils import start_driver_selenium , get_notion_database
 import os
 
-def get_all_make_model(mobile_de_eng_base_link, save_filename, df_cars):
+def get_all_make_model(option,mobile_de_eng_base_link, save_filename, df_cars):
 
     list_cars = df_cars['Name'].unique().tolist()
-
-    chrome_options = webdriver.ChromeOptions()
     list_cars_makes = [car.split(' ')[0] for car in list_cars]
-    prefs = {"profile.managed_default_content_settings.images": 2
-        }
-    chrome_options.add_experimental_option("prefs", prefs)
-
-    driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+    
+    driver = start_driver_selenium(option)
 
     driver.get(mobile_de_eng_base_link)
     time.sleep(3)
@@ -112,13 +107,19 @@ def get_all_make_model(mobile_de_eng_base_link, save_filename, df_cars):
 
     if len(save_filename) > 0:
         car_data_base.to_csv(save_filename, encoding='utf-8', index=False)
+    
+    try:
+        driver.quit()
+    except:
+        print("driver closed")
+
 
     return(car_data_base)
 
 
 
 # if __name__ == "__main__":
-def main():
+def main(option):
 
     df_cars = get_notion_database('modile')
 
@@ -126,6 +127,7 @@ def main():
     if not os.path.exists('data/mobile_de'):
             os.makedirs('data/mobile_de')
 
-    car_data_base = get_all_make_model( "https://www.mobile.de/?lang=en", 
+    car_data_base = get_all_make_model( option,
+                                        "https://www.mobile.de/?lang=en", 
                                         "data/mobile_de/make_and_model_links.csv",
                                         df_cars)

@@ -13,15 +13,12 @@ from datetime import datetime
 import os
 import glob
 import pickle #for saving data
+from src.utils import start_driver_selenium , get_notion_database
 
-def scrape_links_for_one_make_model(make_model_dat,sleep, save_to_csv):
 
-    chrome_options = webdriver.ChromeOptions()
-    prefs = {"profile.managed_default_content_settings.images": 2} # this is to not load images
-    chrome_options.add_experimental_option("prefs", prefs)
+def scrape_links_for_one_make_model(option,make_model_dat,sleep, save_to_csv):
 
-    #start a driver
-    driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+    driver = start_driver_selenium(option)
 
     year_min = make_model_dat['year_min']
     year_max = make_model_dat['year_max']
@@ -50,7 +47,7 @@ def scrape_links_for_one_make_model(make_model_dat,sleep, save_to_csv):
     except:
         last_button_number = int(1)
     
-    driver.close()
+    driver.quit()
 
     #start scraping the ads
     
@@ -61,12 +58,7 @@ def scrape_links_for_one_make_model(make_model_dat,sleep, save_to_csv):
         #start a new driver every time
         #we need this to avoid getting blocked by the website. If we don't do this, we will get captcha
 
-        chrome_options = webdriver.ChromeOptions()
-        prefs = {"profile.managed_default_content_settings.images": 2} # this is to not load images
-        chrome_options.add_experimental_option("prefs", prefs)
-
-        #start a driver
-        driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+        driver = start_driver_selenium(option)
 
         #we need to navigate to the page
         one_page_link = make_model_input_link + "&pageNumber=" + str(i)
@@ -92,7 +84,7 @@ def scrape_links_for_one_make_model(make_model_dat,sleep, save_to_csv):
         for elements in links_on_one_page:
             links_on_multiple_pages.append(elements)
 
-        driver.close() #close the driver
+        driver.quit() #quit the driver
 
     links_on_one_page_df = pd.DataFrame({'ad_link' : links_on_multiple_pages})
     #drop duplicates
@@ -121,13 +113,13 @@ def scrape_links_for_one_make_model(make_model_dat,sleep, save_to_csv):
 
     return(links_on_one_page_df)
 
-def multiple_link_on_multiple_pages_data(make_model_dat, sleep, save_to_csv):
+def multiple_link_on_multiple_pages_data(option,make_model_dat, sleep, save_to_csv):
 
     multiple_make_model_data = pd.DataFrame()
     lenght = make_model_dat.shape[0]
     for i in range(lenght):
         
-        one_page_adds = scrape_links_for_one_make_model(make_model_dat.loc[i],
+        one_page_adds = scrape_links_for_one_make_model(option, make_model_dat.loc[i],
                                                         sleep = sleep, 
                                                         save_to_csv = save_to_csv)
 
@@ -157,11 +149,11 @@ def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
 
 
 # if __name__ == "__main__":
-def main():
+def main(option):
 
     make_model_dat = pd.read_csv('./data/mobile_de/make_and_model_links.csv')
         
-    multi_data = multiple_link_on_multiple_pages_data(make_model_dat,
+    multi_data = multiple_link_on_multiple_pages_data(option,make_model_dat,
                                                       1, 
                                                       True)
 
