@@ -82,6 +82,6 @@ Having problems with the selenium scraper
 - [X] Google Storage
 - [X] Mobile.de
 - [X] flexicar
-- [] Wallapop
+- [ ] Wallapop
 - [ ] Dockerize
 - [ ] Project setup
