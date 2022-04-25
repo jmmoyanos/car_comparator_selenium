@@ -7,16 +7,13 @@ import time
 from bs4 import BeautifulSoup 
 import pandas as pd
 import numpy as np
-import re
-import requests
 from random import *
 from tqdm import tqdm #progress bar
 from datetime import datetime
 import os
 import glob
 import pickle #for saving data
-import src.storage
-
+from src.utils import start_driver_selenium
 
 def clean_data(data):
     data['price'] = data['Price'].str.replace('.', '')
@@ -30,14 +27,8 @@ def clean_data(data):
     data['price_category'] = data['Price'].str.extract('([a-zA-Z]+)')
     return data
 
-def get_ad_data(ad_link, sleep_time ,save_to_csv, save_to_pickle):
-    chrome_options = webdriver.ChromeOptions()
-    # prefs = {"profile.managed_default_content_settings.images": 2} # this is to not load images
-    prefs = {"profile.managed_default_content_settings.images": 2}
-    chrome_options.add_experimental_option("prefs", prefs)
-
-    #start a driver
-    driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+def get_ad_data(option, ad_link, sleep_time ,save_to_csv, save_to_pickle):
+    driver = start_driver_selenium(option)
 
     #get the number of pages
     driver.get(ad_link)
@@ -47,6 +38,7 @@ def get_ad_data(ad_link, sleep_time ,save_to_csv, save_to_pickle):
 
 
     ad_source = driver.page_source
+    time.sleep(0.5)
     ad_soup = BeautifulSoup(ad_source, 'html.parser')
     driver.quit()
 
@@ -106,7 +98,7 @@ def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
     return(output_file)
 
 # merge the individual ads data with the make_model_ads_data_latest and keep only the latest download date
-def merge_make_model_keep_latest(data):
+def merge_make_model_keep_latest(data, make_model_ads_data):
     latest_scrape = data.groupby(['link'], dropna=True).agg(number_of_ads=('link', 'count'), latest_scrape=('download_date_time', 'max'))
     latest_scrape = latest_scrape.reset_index()
 
@@ -118,14 +110,14 @@ def merge_make_model_keep_latest(data):
     # drop the latest_scrape column
     data = data.drop(columns = ['latest_scrape'])
     
-    data = pd.merge(data, make_model_ads_data_latest[['ad_link', 'car_make', 'car_model']], how = 'left', left_on = 'link', right_on = 'ad_link')
+    data = pd.merge(data, make_model_ads_data[['ad_link', 'car_make', 'car_model']], how = 'left', left_on = 'link', right_on = 'ad_link')
 
     return data
 
 
 
 # if __name__ == '__main__' :
-def main():
+def main(option):
 
     make_model_ads_data = pd.read_csv("./data/flexicar/make_model_ads_links_concatinated.csv")
 
@@ -144,11 +136,11 @@ def main():
 
     for i in tqdm(range(len_of_links)):
         ad_link = make_model_ads_data_latest['ad_link'][i]
-        data = get_ad_data(ad_link = ad_link, sleep_time = 5, save_to_csv = True, save_to_pickle = False)
+        data = get_ad_data(option = option, ad_link = ad_link, sleep_time = 5, save_to_csv = True, save_to_pickle = False)
 
     individual_ads_data = concatenate_dfs("./data/flexicar/make_model_ads_data/",  True, False)
 
-    ads_df = merge_make_model_keep_latest(data = individual_ads_data)
+    ads_df = merge_make_model_keep_latest(data = individual_ads_data,make_model_ads_data = make_model_ads_data_latest)
     ads_df_clean = clean_data(data = ads_df)
 
 

@@ -7,14 +7,11 @@ import time
 from bs4 import BeautifulSoup 
 import pandas as pd
 import numpy as np
-import re
-import requests
 from random import *
 from tqdm import tqdm #progress bar
 from datetime import datetime
 import os
 import glob
-import pickle #for saving data
 from src.utils import start_driver_selenium
 
 def scrape_links_for_one_make_model(option, make_model_dat,sleep, save_to_csv):

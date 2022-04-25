@@ -23,17 +23,20 @@ print(args.runtime)
 
 if 'flexicar' in args.site:
     from src.es.flexicar import get_data_adds,get_links_cars,get_master
+    print("flexicar")
     print("master")
     get_master.main(args.runtime)
     print("links")
-    #get_links_cars.main()
-    #get_data_adds.main()
+    get_links_cars.main(args.runtime)
+    print("data")
+    get_data_adds.main(args.runtime)
 
 if 'mobile_de' in args.site:
     from src.de.mobile_de import get_data_adds,get_links_cars,get_master
-    #print("master")
-    #get_master.main(args.runtime)
-    #print("links")
-    #get_links_cars.main(args.runtime)
+    print("mobile_de")
+    print("master")
+    get_master.main(args.runtime)
+    print("links")
+    get_links_cars.main(args.runtime)
     print("data")
     get_data_adds.main(args.runtime)

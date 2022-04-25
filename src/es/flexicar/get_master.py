@@ -6,7 +6,6 @@ import time
 from bs4 import BeautifulSoup 
 import pandas as pd
 import numpy as np
-import re
 from random import randrange
 from tqdm import tqdm #progress bar
 import os
@@ -30,7 +29,7 @@ def get_all_make_model(option, flexicar_base_link, save_filename, df_cars):
 
     i=1
 
-    while(i<15):
+    while(i<45):
         try:
             list_ = []
             driver = start_driver_selenium(option)

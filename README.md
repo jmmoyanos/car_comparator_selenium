@@ -86,7 +86,7 @@ repo [docker-selenium-arm](https://github.com/seleniumhq-community/docker-seleni
 To build the images, run build.sh from the root directory of this repo, and specify your architecture, either arm64, arm/v7, or amd64:
 
 ```bash
-./build.sh arm64    # or arm/v7 or amd64
+./build.sh arm64 
 ```
 
 To start the container image, run:
@@ -97,9 +97,7 @@ docker run --rm -it -p 4444:4444 -p 5900:5900 -p 7900:7900 --shm-size 3g local-s
 
 ### AMD and other
 
-follow instructions : 
-
-[docker-selenium](https://github.com/SeleniumHQ/docker-selenium)
+follow instructions [docker-selenium](https://github.com/SeleniumHQ/docker-selenium)
 
 ## TODOs
 
@@ -109,5 +107,6 @@ follow instructions :
 - [X] flexicar
 - [ ] Wallapop
 - [X] Dockerize
-- [ ] Project setup
+- [ ] requiremets update
+- [ ] async functions for multiple scrap request - links and data
 - [ ] improve main
