@@ -36,6 +36,7 @@ This database its hosted in notion and have the following columns to add the car
 
 - Country Germany :  [modile.de](https://www.mobile.de/?lang=en)
 - Country Spain : [flexicar](https://www.flexicar.es/coches-segunda-mano/)
+- Country Spain: [wallapop](https://es.wallapop.com/coches-segunda-mano)
 
 ## Getting Started
 
@@ -81,5 +82,6 @@ Having problems with the selenium scraper
 - [X] Google Storage
 - [X] Mobile.de
 - [X] flexicar
+- [] Wallapop
 - [ ] Dockerize
 - [ ] Project setup
