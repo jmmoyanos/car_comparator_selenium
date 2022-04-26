@@ -127,7 +127,7 @@ def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
     return(output_file)
 
 # merge the individual ads data with the make_model_ads_data_latest and keep only the latest download date
-def merge_make_model_keep_latest(data):
+def merge_make_model_keep_latest(data,make_model_ads_data_latest):
     latest_scrape = data.groupby(['link'], dropna=True).agg(number_of_ads=('link', 'count'), latest_scrape=('download_date_time', 'max'))
     latest_scrape = latest_scrape.reset_index()
 
@@ -168,7 +168,7 @@ def main(option):
 
     individual_ads_data = concatenate_dfs("./data/mobile_de/make_model_ads_data/",  True, False)
 
-    ads_df = merge_make_model_keep_latest(data = individual_ads_data)
+    ads_df = merge_make_model_keep_latest(data = individual_ads_data, make_model_ads_data_latest = make_model_ads_data_latest)
     ads_df_clean = clean_data(data = ads_df)
 
 

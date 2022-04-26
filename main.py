@@ -1,4 +1,5 @@
 import argparse
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -14,9 +15,21 @@ parser.add_argument(
     required=True,
     default='local'
 )
+parser.add_argument(
+    "-bl",
+    "--batch_links",
+    help="Batch size of links pages scraped simultaneously.",
+    required=False,
+)
+parser.add_argument(
+    "-bd",
+    "--batch_data",
+    help="Batch size of cars to scrape",
+    required=False,
+)
 
 
-
+time.sleep(30)
 args = parser.parse_args()
 
 print(args.runtime)
@@ -35,8 +48,8 @@ if 'mobile_de' in args.site:
     from src.de.mobile_de import get_data_adds,get_links_cars,get_master
     print("mobile_de")
     print("master")
-    get_master.main(args.runtime)
-    print("links")
-    get_links_cars.main(args.runtime)
-    print("data")
+    # get_master.main(args.runtime)
+    # print("links")
+    # get_links_cars.main(args.runtime)
+    # print("data")
     get_data_adds.main(args.runtime)

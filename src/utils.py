@@ -7,6 +7,7 @@ from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+import pandas as pd
 
 def read_secrets_yaml():
 
@@ -29,17 +30,30 @@ def get_notion_database(name):
 
     return df
 
+# def check_if_master_changed(file, car_dealer):
+
+
+
+
 def start_driver_selenium(option):
     
     chrome_options = webdriver.ChromeOptions()
     prefs = {"profile.managed_default_content_settings.images": 2}
     chrome_options.add_experimental_option("prefs", prefs)
 
-    if option == 'docker':
+    if option == 'docker_local':
         
         driver = webdriver.Remote(
                 desired_capabilities=DesiredCapabilities.CHROME,
                 command_executor="http://127.0.0.1:4444/wd/hub",
+                options=chrome_options
+            )
+    
+    if option == 'docker':
+        
+        driver = webdriver.Remote(
+                desired_capabilities=DesiredCapabilities.CHROME,
+                command_executor="http://selenium-hub:4444/wd/hub",
                 options=chrome_options
             )
     

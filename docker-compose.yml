@@ -1,39 +1,42 @@
 version: "3"
+networks:
+  sel-network:
+
+volumes:
+  datavolume:
 services:
   chrome1:
     image: local-seleniarm/node-chromium 
     shm_size: 2gb
     depends_on:
       - selenium-hub
+    networks:
+      - sel-network
     environment:
       - SE_EVENT_BUS_HOST=selenium-hub
       - SE_EVENT_BUS_PUBLISH_PORT=4442
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
   
-  # chrome2:
-  #   image: local-seleniarm/node-chromium 
-  #   shm_size: 2gb
-  #   depends_on:
-  #     - selenium-hub
-  #   environment:
-  #     - SE_EVENT_BUS_HOST=selenium-hub
-  #     - SE_EVENT_BUS_PUBLISH_PORT=4442
-  #     - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
-  
-  # chrome3:
-  #   image: local-seleniarm/node-chromium 
-  #   shm_size: 2gb
-  #   depends_on:
-  #     - selenium-hub
-  #   environment:
-  #     - SE_EVENT_BUS_HOST=selenium-hub
-  #     - SE_EVENT_BUS_PUBLISH_PORT=4442
-  #     - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
-
   selenium-hub:
     image: selenium/hub
     container_name: selenium-hub
+    networks:
+      - sel-network
     ports:
       - "4442:4442"
       - "4443:4443"
       - "4444:4444"
+
+  scraper: 
+    build:
+      context: .
+    # image: app_scrap_wait
+    command: tail -F anything
+    depends_on:
+      - selenium-hub
+      - chrome1
+    networks:
+      - sel-network
+    volumes:
+      - ./data:/opt/app/data
+    

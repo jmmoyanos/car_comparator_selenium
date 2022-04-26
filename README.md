@@ -110,3 +110,13 @@ follow instructions [docker-selenium](https://github.com/SeleniumHQ/docker-selen
 - [ ] requiremets update
 - [ ] async functions for multiple scrap request - links and data
 - [ ] improve main
+
+
+## asyinc funtions
+
+### mobile_De
+
+los puntos de mejora:
+
+ - crear funcion de scrapeado de paginas
+ - crear funcion async de scrapeado de data ads
