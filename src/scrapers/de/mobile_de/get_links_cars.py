@@ -98,10 +98,11 @@ def scrape_links_for_one_make_model(option,make_model_dat,sleep, save_to_csv):
 
     links_on_one_page_df['download_date_time'] = datetime_string
     make_model_input_data = pd.DataFrame(make_model_dat).T
+    make_model_input_data  = pd.concat(links_on_one_page_df.shape[0] * [make_model_input_data]).reset_index(drop=True)
     #check is the make and model is in the dataframe
     if isinstance(make_model_input_data, pd.DataFrame):
         #join the dataframes to get make and model information
-        links_on_one_page_df = pd.merge(links_on_one_page_df, make_model_input_data, how = 'left', left_on= ['make_model_link'], right_on = ['link'])
+        links_on_one_page_df = pd.concat([links_on_one_page_df, make_model_input_data],axis=1)
 
     #save the dataframe if save_to_csv is True
     if save_to_csv:

@@ -105,11 +105,13 @@ follow instructions [docker-selenium](https://github.com/SeleniumHQ/docker-selen
 - [X] Google Storage
 - [X] Mobile.de
 - [X] flexicar
-- [ ] Wallapop
 - [X] Dockerize
-- [ ] requiremets update
+- [ ] requirements update
 - [ ] async functions for multiple scrap request - links and data
 - [ ] improve main
+- [ ] logger
+- [ ] Transform and Load Data
+- [ ] - [ ] Wallapop
 
 
 ## asyinc funtions

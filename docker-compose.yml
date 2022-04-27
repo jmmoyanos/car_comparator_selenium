@@ -18,7 +18,7 @@ services:
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
   
   selenium-hub:
-    image: selenium/hub
+    image: local-seleniarm/hub
     container_name: selenium-hub
     networks:
       - sel-network
@@ -29,9 +29,8 @@ services:
 
   scraper: 
     build:
-      context: .
-    # image: app_scrap_wait
-    command: tail -F anything
+       context: .
+    #image: car_scraper
     depends_on:
       - selenium-hub
       - chrome1
@@ -39,4 +38,5 @@ services:
       - sel-network
     volumes:
       - ./data:/opt/app/data
+    command: ["/bin/sh", "-ec", "sleep 1000000"]
     
