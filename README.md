@@ -106,19 +106,9 @@ follow instructions [docker-selenium](https://github.com/SeleniumHQ/docker-selen
 - [X] Mobile.de
 - [X] flexicar
 - [X] Dockerize
-- [ ] requirements update
-- [ ] async functions for multiple scrap request - links and data
+- [X] requirements update
+- [X] async functions for multiple scrap request - links and data
 - [ ] improve main
 - [ ] logger
 - [ ] Transform and Load Data
-- [ ] - [ ] Wallapop
-
-
-## asyinc funtions
-
-### mobile_De
-
-los puntos de mejora:
-
- - crear funcion de scrapeado de paginas
- - crear funcion async de scrapeado de data ads
+- [ ] Wallapop

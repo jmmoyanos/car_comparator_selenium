@@ -45,3 +45,5 @@ docker/secrets
 
 # 
 data/
+cron/
+logs/

@@ -12,9 +12,11 @@ from random import randrange
 from tqdm import tqdm #progress bar
 from src.utils import start_driver_selenium , get_notion_database
 import os
+import pandas as pd
 
-def get_all_make_model(option,mobile_de_eng_base_link, save_filename, df_cars):
+def get_all_make_model(option,mobile_de_eng_base_link, save_filename, df_cars,logger):
 
+    logger.info(f'-----> {name}  - getting the master makes links')
     list_cars = df_cars['Name'].unique().tolist()
     list_cars_makes = [car.split(' ')[0] for car in list_cars]
     
@@ -52,32 +54,38 @@ def get_all_make_model(option,mobile_de_eng_base_link, save_filename, df_cars):
 
     for one_make in tqdm(car_base_make_data['car_make'], "Progress: "):
 
-        make_string = "//select[@name='mk']/option[text()='{}']".format(one_make)
-        driver.find_element(by=By.XPATH, value=make_string).click()
-        time.sleep(3)
+        try:
+            make_string = "//select[@name='mk']/option[text()='{}']".format(one_make)
+            driver.find_element(by=By.XPATH, value=make_string).click()
+            time.sleep(3)
 
-        base_source = driver.page_source
-        base_soup = BeautifulSoup(base_source, 'html.parser')
+            base_source = driver.page_source
+            base_soup = BeautifulSoup(base_source, 'html.parser')
 
-        model_list = base_soup.findAll('div', {'class': 'form-group'})[1]
-        models = model_list.findAll('option')
+            model_list = base_soup.findAll('div', {'class': 'form-group'})[1]
+            models = model_list.findAll('option')
 
-        car_model = []
-        id2 = []
+            car_model = []
+            id2 = []
 
-        for i in range(len(models)):
+            for i in range(len(models)):
 
-            car_model.append(models[i].text.strip())
+                car_model.append(models[i].text.strip())
 
-            try:
-                id2.append(models[i]['value'])
-            except:
-                id2.append('')
+                try:
+                    id2.append(models[i]['value'])
+                except:
+                    id2.append('')
 
-        car_base_model_data_aux = pd.DataFrame({'car_model': car_model, 'id2': id2})
-        car_base_model_data_aux['car_make'] = one_make
+            car_base_model_data_aux = pd.DataFrame({'car_model': car_model, 'id2': id2})
+            car_base_model_data_aux['car_make'] = one_make
 
-        car_base_model_data = pd.concat([car_base_model_data, car_base_model_data_aux], ignore_index=True)
+            car_base_model_data = pd.concat([car_base_model_data, car_base_model_data_aux], ignore_index=True)
+            logger.info(f'-----> {name}  - getting the master makes links {one_make}')
+
+        except:
+            logger.info(f'-----> {name}  - error getting the master makes links {one_make}')
+
 
     ###MAKE THE FILTERING HEREEEE
     
@@ -107,6 +115,8 @@ def get_all_make_model(option,mobile_de_eng_base_link, save_filename, df_cars):
 
     if len(save_filename) > 0:
         car_data_base.to_csv(save_filename, encoding='utf-8', index=False)
+        logger.info(f'-----> {name}  - saving {save_filename}')
+
     
     try:
         driver.quit()
@@ -118,16 +128,30 @@ def get_all_make_model(option,mobile_de_eng_base_link, save_filename, df_cars):
 
 
 
-# if __name__ == "__main__":
-def main(option):
+#if __name__ == "__main__":
+def main(option,logger):
 
-    df_cars = get_notion_database('modile')
+    df_cars = get_notion_database('mobile_de').astype(str).sort_values(by='Name').reset_index(drop=True)
+
+    global name
+    name = 'mobile_de'
 
 
     if not os.path.exists('data/mobile_de'):
             os.makedirs('data/mobile_de')
 
-    car_data_base = get_all_make_model( option,
-                                        "https://www.mobile.de/?lang=en", 
-                                        "data/mobile_de/make_and_model_links.csv",
-                                        df_cars)
+    try:
+        df = pd.read_csv('data/mobile_de/make_and_model_links.csv')
+        df_cars_check = df[list(df_cars.columns)].astype(str).sort_values(by='Name').reset_index(drop=True)
+
+    except:
+        df_cars_check = pd.DataFrame()
+        logger.info(f'-----> {name} master not found')
+
+
+    if not df_cars.equals(df_cars_check):
+        get_all_make_model( option,
+                            "https://www.mobile.de/?lang=en", 
+                            "data/mobile_de/make_and_model_links.csv",
+                            df_cars,
+                            logger)

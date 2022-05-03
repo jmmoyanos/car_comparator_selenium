@@ -28,9 +28,9 @@ docker exec car_cormparator-scraper-1 python main.py -r docker -s flexicar
 
 sleep 5 
 
-#echo "mobile_de"
+echo "mobile_de"
 
-#docker exec car_cormparator-scraper-1 python main.py -r docker -s mobile_de
+docker exec car_cormparator-scraper-1 python main.py -r docker -s mobile_de
 
 # docker down
 

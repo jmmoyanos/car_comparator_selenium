@@ -1,4 +1,5 @@
 import yaml
+from google.cloud import storage
 import pandas as pd
 import notion_df
 import os.path
@@ -24,14 +25,10 @@ def get_notion_database(name):
     notion_df.pandas()
 
     ## Read frame
-    df = pd.read_notion(page_url, api_key=secrets).drop_duplicates().drop('webs', axis=1)
-    # df = df[df['webs'].str.contains(name)].drop('webs', axis=0)
+    df = pd.read_notion(page_url, api_key=secrets).drop_duplicates()
+    df = df[df['webs'].str.contains(name, regex=True)]
 
-    return df
-
-# def check_if_master_changed(file, car_dealer):
-
-
+    return df.drop('webs', axis=1)
 
 
 def start_driver_selenium(option):

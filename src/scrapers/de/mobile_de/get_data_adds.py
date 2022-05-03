@@ -16,6 +16,8 @@ import os
 import glob
 import pickle #for saving data
 from src.utils import start_driver_selenium
+import concurrent.futures
+
 
 
 def clean_data(data):
@@ -35,88 +37,90 @@ def clean_data(data):
     data['price_category'] = data['Price'].str.extract('([a-zA-Z]+)')
     return data
 
-def get_ad_data(option, ad_link = '', sleep_time = 5, save_to_csv = True, save_to_pickle = True):
+def get_ad_data(option, ad_link,make_model_link, sleep_time, save_to_csv,logger):
     
-    driver = start_driver_selenium(option)
-
-    #get the number of pages
-    driver.get(ad_link + '%3Flang%3Den&lang=en')
-    time.sleep(sleep_time)
-    ad_source = driver.page_source
-    ad_soup = BeautifulSoup(ad_source, 'html.parser')
-    driver.quit()
-
     try:
-        table_pre = ad_soup.find("div", { "class" : "cBox-body cBox-body--technical-data"})
-        all_div = table_pre.findAll("div", { "class" : re.compile('^g-col-6')})
-    except:
-        table_pre = []
-        all_div = []
-    
-    description_list = []
-    value_list = []
+        driver = start_driver_selenium(option)
 
-    try:
-        div_length = len(all_div)
-    except:
-        div_length = 2
+        #get the number of pages
+        driver.get(ad_link + '%3Flang%3Den&lang=en')
+        time.sleep(sleep_time)
+        ad_source = driver.page_source
+        ad_soup = BeautifulSoup(ad_source, 'html.parser')
+        driver.quit()
 
-    i = 1
-    for i in range(div_length - 1):
         try:
-            description_list.append(all_div[i].text)
-            value_list.append(all_div[i+1].text)
-            i += 2
+            table_pre = ad_soup.find("div", { "class" : "cBox-body cBox-body--technical-data"})
+            all_div = table_pre.findAll("div", { "class" : re.compile('^g-col-6')})
         except:
-            description_list.append('no_description')
-            value_list.append('no_value')
-    
-    model = ad_soup.find("h1")    
-    if model==None:
-        model = ad_soup.find("h2")   
-    if model==None:
-        model = ad_soup.find("h3") 
-
-    #create a dataframe
-    df = pd.DataFrame(list(zip(description_list, value_list)), columns = ['description', 'value'])
-
-    #keep rows where value is equal to the followings
-    data_we_want_to_keep = ['Price', 'Category', 'Mileage', 'Cubic Capacity', 'Power', 'Fuel','Fuel Consumption ', 'Number of Seats', 'Gearbox','Energy efficiency class', 'First Registration', 'Colour', 'Interior Design','Emissions Sticker','Parking sensors', 'Energy efficiency class']
-    df = df[df['description'].isin(data_we_want_to_keep)]
-    # df.columns = ['Price', 'Category', 'Mileage', 'Engine_Displacement', 'Power', 'Fuel_Type', 'Number of Seats', 'Transmission', 'First Registration', 'Color', 'Interior']
-
-    # #transpose with description as column names
-    #df = df.T
-    df = df.set_index('description').T.reset_index(drop=True)
-    df = df.rename_axis(None, axis=1)
-    df['link'] = ad_link
-    df['model'] = model
-
-
-    #datetime string
-    now = datetime.now() 
-    datetime_string = str(now.strftime("%Y%m%d_%H%M%S"))
-
-    df['download_date_time'] = datetime_string
-
-    #save the dataframe if save_to_csv is True
-    if save_to_csv:
-        #check if folder exists and if not create it
-        if not os.path.exists('data/mobile_de/make_model_ads_data'):
-            os.makedirs('data/mobile_de/make_model_ads_data')
-
-        df.to_csv(str('data/mobile_de/make_model_ads_data/links_on_one_page_df' + datetime_string + '.csv'), index = False)
-
-    if save_to_pickle:
-        if not os.path.exists('data/mobile_de/make_model_ads_data'):
-            os.makedirs('data/mobile_de/make_model_ads_data')
+            table_pre = []
+            all_div = []
         
-        df.to_pickle('data/mobile_de/make_model_ads_data/links_on_one_page_df' + datetime_string + "pkl")
+        description_list = []
+        value_list = []
+
+        try:
+            div_length = len(all_div)
+        except:
+            div_length = 2
+
+        i = 1
+        for i in range(div_length - 1):
+            try:
+                description_list.append(all_div[i].text)
+                value_list.append(all_div[i+1].text)
+                i += 2
+            except:
+                description_list.append('no_description')
+                value_list.append('no_value')
+        
+        model = ad_soup.find("h1")    
+        if model==None:
+            model = ad_soup.find("h2")   
+        if model==None:
+            model = ad_soup.find("h3") 
+
+        #create a dataframe
+        df = pd.DataFrame(list(zip(description_list, value_list)), columns = ['description', 'value'])
+
+        #keep rows where value is equal to the followings
+        data_we_want_to_keep = ['Price', 'Category', 'Mileage', 'Cubic Capacity', 'Power', 'Fuel','Fuel Consumption ', 'Number of Seats', 'Gearbox','Energy efficiency class', 'First Registration', 'Colour', 'Interior Design','Emissions Sticker','Parking sensors', 'Energy efficiency class']
+        df = df[df['description'].isin(data_we_want_to_keep)]
+        # df.columns = ['Price', 'Category', 'Mileage', 'Engine_Displacement', 'Power', 'Fuel_Type', 'Number of Seats', 'Transmission', 'First Registration', 'Color', 'Interior']
+
+        # #transpose with description as column names
+        #df = df.T
+        df = df.set_index('description').T.reset_index(drop=True)
+        df = df.rename_axis(None, axis=1)
+        df['link'] = ad_link
+        df['make_model_link'] = make_model_link
+        df['model'] = model
+
+
+        #datetime string
+        now = datetime.now() 
+        datetime_string = str(now.strftime("%Y%m%d_%H%M%S%f"))
+
+        df['download_date_time'] = datetime_string
+
+        #save the dataframe if save_to_csv is True
+        if save_to_csv:
+            #check if folder exists and if not create it
+            if not os.path.exists('data/mobile_de/make_model_ads_data'):
+                os.makedirs('data/mobile_de/make_model_ads_data')
+
+            df.to_csv(str('data/mobile_de/make_model_ads_data/links_on_one_page_df' + datetime_string + '.csv'), index = False)
+
+        logger.info(f'-----> {name} - saving data from {ad_link}%3Flang%3Den&lang=en')
+
+    except Exception as exp:
+        logger.error(f'-----> {name} - {exp} -saving data from {ad_link}%3Flang%3Den&lang=en')
+
 
     return(df)
 
 # concatenate the dataframes in one folder to get one file (with different columns)
-def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
+def concatenate_dfs(indir, save_to_csv,logger):
     
 
     fileList=glob.glob(str(str(indir) + "*.csv"))
@@ -126,10 +130,13 @@ def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
     output_file = output_file.drop_duplicates(subset=cols,keep='last')
 
     if save_to_csv:
-        output_file.to_csv("data/mobile_de/make_model_ads_concatinated.csv", index=False)
+        try:
+            output_file.to_csv("data/mobile_de/make_model_ads_concatinated.csv", index=False)
+            logger.info(f'-----> {name} - saving data/mobile_de/make_model_ads_concatinated.csv')
+        except:
+            logger.error(f'-----> {name} - saving data/mobile_de/make_model_ads_concatinated.csv')
 
-    if save_to_pickle:
-        output_file.to_pickle("data/mobile_de/make_model_ads_concatinated.pkl")
+
     output_file.reset_index(drop=True, inplace=True)
 
     return(output_file)
@@ -146,15 +153,21 @@ def merge_make_model_keep_latest(data,make_model_ads_data_latest):
     data = data.reset_index(drop=True)
     # drop the latest_scrape column
     data = data.drop(columns = ['latest_scrape'])
-    
-    data = pd.merge(data, make_model_ads_data_latest[['ad_link', 'car_make', 'car_model']], how = 'left', left_on = 'link', right_on = 'ad_link')
+    make_model_ads_data_latest = make_model_ads_data_latest[['make_model_link','car_make', 'car_model']].drop_duplicates(keep='first')
+
+    data = pd.merge(data, make_model_ads_data_latest, how = 'inner', left_on = 'make_model_link', right_on = 'make_model_link')
 
     return data
 
 
 
 # if __name__ == '__main__' :
-def main(option):
+def main(option,num_workers,logger):
+
+    global name
+    name='mobile_de'
+    
+    logger.info(f'-----> {name} - reading make_model_ads_links_concatinated')
     make_model_ads_data = pd.read_csv("./data/mobile_de/make_model_ads_links_concatinated.csv")
 
     latest_scrape = make_model_ads_data.groupby(['car_make', 'car_model'], dropna=False).agg(number_of_ads=('ad_link', 'count'), latest_scrape=('download_date_time', 'max'))
@@ -167,23 +180,40 @@ def main(option):
     make_model_ads_data_latest = make_model_ads_data_latest.reset_index(drop=True)
     # drop the latest_scrape column
     make_model_ads_data_latest = make_model_ads_data_latest.drop(columns = ['latest_scrape'])
+    logger.info(f'-----> {name} - getting ad data of the last scrap')
+
 
     len_of_links = len(make_model_ads_data_latest)
+    ad_links  = make_model_ads_data_latest['ad_link'].tolist()
+    make_model_link  = make_model_ads_data_latest['make_model_link'].tolist()
 
-    for i in tqdm(range(len_of_links)):
-        ad_link = make_model_ads_data_latest['ad_link'][i]
-        data = get_ad_data(option, ad_link = ad_link, sleep_time = 5, save_to_csv = True, save_to_pickle = False)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+    # Start the load operations and mark each future with its URL
+        future_to_url = {executor.submit(get_ad_data, option, ad_links[i],make_model_link[i], 5,True,logger): i for i in range(len_of_links)}
+        for future in tqdm(concurrent.futures.as_completed(future_to_url),"Progress: "):
+            url = future_to_url[future]
+            try:
+                logger.info(f'-----> {name} - getting ad data - {make_model_link[url]}')
+            except:
+                logger.error(f'-----> {name} - getting ad data - {make_model_link[url]}')
+    
+    logger.info(f'-----> {name} - contatenate all df links scraped before')
+    individual_ads_data = concatenate_dfs("./data/mobile_de/make_model_ads_data/",  True,logger)
 
-    individual_ads_data = concatenate_dfs("./data/mobile_de/make_model_ads_data/",  True, False)
-
+    logger.info(f'-----> {name} - Merging data')
     ads_df = merge_make_model_keep_latest(data = individual_ads_data, make_model_ads_data_latest = make_model_ads_data_latest)
     ads_df_clean = clean_data(data = ads_df)
 
 
     if not os.path.exists('data/mobile_de/final_data'):
+            logger.info(f'-----> {name} - Creating folder data/mobile_de/final_data')
             os.makedirs('data/mobile_de/final_data')
 
-    now = datetime.now() 
-    datetime_string = str(now.strftime("%Y%m%d_%H%M%S"))
-    ads_df_clean['audit_date'] = datetime_string
-    ads_df_clean.to_csv(f'./data/mobile_de/final_data/scrap_mobilede_{datetime_string}.csv', index=False)
+    try:
+        now = datetime.now() 
+        datetime_string = str(now.strftime("%Y%m%d_%H%M%S"))
+        ads_df_clean['audit_date'] = datetime_string
+        ads_df_clean.to_csv(f'./data/mobile_de/final_data/scrap_mobilede_{datetime_string}.csv', index=False)
+        logger.info(f'-----> {name} - Saving merged data onto /data/mobile_de/final_data/scrap_mobilede_{datetime_string}.csv')
+    except:
+        logger.error(f'-----> {name} - Saving merged data onto /data/mobile_de/final_data/scrap_mobilede_{datetime_string}.csv')

@@ -14,6 +14,7 @@ import os
 import glob
 import pickle #for saving data
 from src.utils import start_driver_selenium
+import concurrent.futures
 
 def clean_data(data):
     data['price'] = data['Price'].str.replace('.', '')
@@ -36,9 +37,8 @@ def get_ad_data(option, ad_link, sleep_time ,save_to_csv, save_to_pickle):
     #scroll
     driver.execute_script(f"window.scrollTo(0, 1000)")
 
-
+    time.sleep(sleep_time)
     ad_source = driver.page_source
-    time.sleep(0.5)
     ad_soup = BeautifulSoup(ad_source, 'html.parser')
     driver.quit()
 
@@ -46,14 +46,15 @@ def get_ad_data(option, ad_link, sleep_time ,save_to_csv, save_to_pickle):
     list_ad_price = [data.text for data in ad_soup.find_all('h3') if '€' in str(data)]
     p = [data.text for data in ad_soup.find_all('p', class_="MuiTypography-root MuiTypography-body1")][:2]
 
+    energy_sticker = ['']    
     for i in ad_soup.find_all('li'):
         if 'Etiqueta de eficiciencia energética clase' in i.text:
             energy_sticker = (i.text.split(' ')[-1:])
-            
+    interior = ['']     
     for i in ad_soup.find_all('li'):
         if 'Asientos de' in i.text:
             interior = [i.text]
-
+   
     list_all_data_ad = list_data_ad + list_ad_price + p + energy_sticker + interior
 
     data_we_want_to_keep = ['First Registration','Mileage', 'Fuel','Number of Seats','Cubic Capacity','Colour','Gearbox', 'Consume', 'IVA', 'Price', 'model_type', 'location', 'Emissions Sticker', 'Interior']
@@ -67,7 +68,7 @@ def get_ad_data(option, ad_link, sleep_time ,save_to_csv, save_to_pickle):
 
     #datetime string
     now = datetime.now() 
-    datetime_string = str(now.strftime("%Y%m%d_%H%M%S"))
+    datetime_string = str(now.strftime("%Y%m%d_%H%M%S5%f"))
 
     df['download_date_time'] = datetime_string
 
@@ -125,7 +126,7 @@ def merge_make_model_keep_latest(data, make_model_ads_data):
 
 
 # if __name__ == '__main__' :
-def main(option):
+def main(option,num_workers):
 
     make_model_ads_data = pd.read_csv("./data/flexicar/make_model_ads_links_concatinated.csv")
 
@@ -142,9 +143,11 @@ def main(option):
 
     len_of_links = len(make_model_ads_data_latest)
 
-    for i in tqdm(range(len_of_links)):
-        ad_link = make_model_ads_data_latest['ad_link'][i]
-        data = get_ad_data(option = option, ad_link = ad_link, sleep_time = 5, save_to_csv = True, save_to_pickle = False)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+    # Start the load operations and mark each future with its URL
+        future_to_url = {executor.submit(get_ad_data, option, make_model_ads_data_latest['ad_link'][i], 5,True,False): i for i in range(len_of_links)}
+        for future in tqdm(concurrent.futures.as_completed(future_to_url),"Progress: "):
+            continue
 
     individual_ads_data = concatenate_dfs("./data/flexicar/make_model_ads_data/",  True, False)
 

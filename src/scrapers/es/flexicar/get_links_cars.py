@@ -13,6 +13,7 @@ from datetime import datetime
 import os
 import glob
 from src.utils import start_driver_selenium
+import concurrent.futures
 
 def scrape_links_for_one_make_model(option, make_model_dat,sleep, save_to_csv):
 
@@ -29,12 +30,12 @@ def scrape_links_for_one_make_model(option, make_model_dat,sleep, save_to_csv):
     driver = start_driver_selenium(option)
 
     driver.get(make_model_input_link)
-    time.sleep(sleep)
+    
     driver.execute_script("window.scrollTo(0, 250)")
     for i in range(500,85000,750):
         driver.execute_script(f"window.scrollTo(0, {i})")
         time.sleep(0.05)
-
+    time.sleep(sleep)
     make_model_link_lastpage_source = driver.page_source
     make_model_link_soup = BeautifulSoup(make_model_link_lastpage_source, 'html.parser')
 
@@ -62,7 +63,7 @@ def scrape_links_for_one_make_model(option, make_model_dat,sleep, save_to_csv):
 
     #datetime string
     now = datetime.now() 
-    datetime_string = str(now.strftime("%Y%m%d_%H%M%S"))
+    datetime_string = str(now.strftime("%Y%m%d_%H%M%S%f"))
 
     links_on_one_page_df['download_date_time'] = datetime_string
     make_model_input_data = pd.DataFrame(make_model_dat).T
@@ -81,17 +82,24 @@ def scrape_links_for_one_make_model(option, make_model_dat,sleep, save_to_csv):
     driver.quit()
     return(links_on_one_page_df)
 
-def multiple_link_on_multiple_pages_data(option, make_model_dat, sleep, save_to_csv):
+def multiple_link_on_multiple_pages_data(option, num_workers,make_model_dat, sleep, save_to_csv):
 
-    multiple_make_model_data = pd.DataFrame()
-    lenght = make_model_dat.shape[0]
-    for i in range(lenght):
-        
-        one_page_adds = scrape_links_for_one_make_model(option, make_model_dat.loc[i],
-                                                        sleep = sleep, 
-                                                        save_to_csv = save_to_csv)
+    multiple_make_model_data = []
+    len_of_links = make_model_dat.shape[0]
 
-        multiple_make_model_data = pd.concat([multiple_make_model_data, one_page_adds], ignore_index=True)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+    # Start the load operations and mark each future with its URL
+        future_to_url = {executor.submit(scrape_links_for_one_make_model, option, make_model_dat.loc[i], sleep,save_to_csv): i for i in range(len_of_links)}
+        for future in tqdm(concurrent.futures.as_completed(future_to_url),"Progress: "):
+            
+            try:
+                one_page_adds = future.result()
+                multiple_make_model_data.append(one_page_adds)
+            except Exception as exc:
+               print('generated an exception:')
+               #continue
+            
+    multiple_make_model_data = pd.concat(multiple_make_model_data)
     
     return(multiple_make_model_data)
 
@@ -117,12 +125,14 @@ def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
 
 
 # if __name__ == "__main__":
-def main(option):
+def main(option,num_workers):
 
     make_model_dat = pd.read_csv('./data/flexicar/make_and_model_links.csv')
+    
         
-    multi_data = multiple_link_on_multiple_pages_data(option,make_model_dat,
-                                                      1, 
+    multi_data = multiple_link_on_multiple_pages_data(option,num_workers,make_model_dat,
+                                                      10, 
                                                       True)
 
     make_model_ads_data = concatenate_dfs(indir= "data/flexicar/make_model_ads_links/", save_to_csv = True, save_to_pickle = False)
+    
