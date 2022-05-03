@@ -34,4 +34,4 @@ docker exec car_cormparator-scraper-1 python main.py -r docker -s mobile_de
 
 # docker down
 
-docker-compose down
+docker-compose down --volumes --rmi all

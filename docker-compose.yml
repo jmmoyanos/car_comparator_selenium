@@ -31,16 +31,16 @@ services:
       - "4443:4443"
       - "4444:4444"
 
-  # scraper: 
-  #   build:
-  #      context: .
-  #   #image: car_scraper
-  #   depends_on:
-  #     - selenium-hub
-  #     - chrome1-a
-  #   networks:
-  #     - sel-network
-  #   volumes:
-  #     - ./data:/opt/app/data
-  #   command: ["/bin/sh", "-ec", "sleep 1000000"]
+  scraper: 
+    build:
+       context: .
+    #image: car_scraper
+    depends_on:
+      - selenium-hub
+      - chrome1-a
+    networks:
+      - sel-network
+    volumes:
+      - ./data:/opt/app/data
+    command: ["/bin/sh", "-ec", "sleep 1000000"]
     
