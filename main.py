@@ -48,9 +48,9 @@ if 'flexicar' in args.site:
     print("master")
     get_master.main(args.runtime,int(args.num_workers))
     print("links")
-    get_links_cars.main(args.runtime,int(args.num_workers))
+    #get_links_cars.main(args.runtime,int(args.num_workers))
     print("data")
-    get_data_adds.main(args.runtime,int(args.num_workers))
+    #get_data_adds.main(args.runtime,int(args.num_workers))
 
 if 'mobile_de' in args.site:
     from src.scrapers.de.mobile_de import get_data_adds,get_links_cars,get_master
@@ -58,7 +58,7 @@ if 'mobile_de' in args.site:
     print("master")
     get_master.main(args.runtime,logger)
     print("links")
-    #get_links_cars.main(args.runtime,int(args.num_workers),logger)
+    get_links_cars.main(args.runtime,int(args.num_workers),logger)
     print("data")
     get_data_adds.main(args.runtime,int(args.num_workers),logger)
 

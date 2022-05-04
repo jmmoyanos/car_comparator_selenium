@@ -25,8 +25,8 @@ def get_car_model_page(i,option,num_workers,flexicar_base_link):
     model_string_button = '//*[@id="model-select"]'
     make_out_page_brands = '//*[@id="menu-brands"]'
 
-    j = 0
-    while(True):
+    k = 0
+    while(k<5):
         try:
             list_ = []
             driver = start_driver_selenium(option)
@@ -43,13 +43,10 @@ def get_car_model_page(i,option,num_workers,flexicar_base_link):
                 make=''
                 
             time.sleep(0.3)
-            #driver.find_element(by=By.XPATH, value=make_string).click()
             click_wait(driver,make_string)
             time.sleep(0.3)
-            #driver.find_element(by=By.XPATH, value=make_out_page_brands).click()
             click_wait(driver,make_out_page_brands)
             time.sleep(0.3)
-            #driver.find_element(by=By.XPATH, value=model_string_button).click()
             click_wait(driver,model_string_button)
             time.sleep(0.3)
             #print(make)
@@ -58,6 +55,7 @@ def get_car_model_page(i,option,num_workers,flexicar_base_link):
                 time.sleep(0.1)
                 list_.append(driver.find_element(by=By.XPATH, value=model_make_string).text)
                 raise ValueError('A very specific bad thing happened.')
+
             except:
                 try:
                     j=2
@@ -69,21 +67,15 @@ def get_car_model_page(i,option,num_workers,flexicar_base_link):
                         time.sleep(0.5)
         except:
             driver.quit()
-        try:
-            driver.quit()
-        except:
-            continue
-
-        time.sleep(0.5)
-        j+=1
-        if (make!= '' and list_ != []) or j>5:
+        
+        k+=1
+        if make!='' and list_!='':
             break
-        print(i,j)
 
     try:
         driver.quit()
     except:
-        print(i,j,"closed")
+        print(i,k,"closed")
 
     return make,list_
 
