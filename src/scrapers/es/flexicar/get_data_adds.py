@@ -151,15 +151,15 @@ def main(option,num_workers,logger, storage_type):
     ad_links  = make_model_ads_data_latest['ad_link'].tolist()
     make_model_link  = make_model_ads_data_latest['make_model_link'].tolist()
 
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
-    # # Start the load operations and mark each future with its URL
-    #     future_to_url = {executor.submit(get_ad_data, option, make_model_ads_data_latest['ad_link'][i], 5,True,logger,bucket,storage_type): i for i in range(len_of_links)}
-    #     for future in tqdm(concurrent.futures.as_completed(future_to_url),"Progress: "):
-    #         url = future_to_url[future]
-    #         try:
-    #             logger.info(f'-----> {name} - getting ad data - {ad_links[url]}')
-    #         except:
-    #             logger.error(f'-----> {name} - getting ad data - {ad_links[url]}')
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+    # Start the load operations and mark each future with its URL
+        future_to_url = {executor.submit(get_ad_data, option, make_model_ads_data_latest['ad_link'][i], 5,True,logger,bucket,storage_type): i for i in range(len_of_links)}
+        for future in tqdm(concurrent.futures.as_completed(future_to_url),"Progress: "):
+            url = future_to_url[future]
+            try:
+                logger.info(f'-----> {name} - getting ad data - {ad_links[url]}')
+            except:
+                logger.error(f'-----> {name} - getting ad data - {ad_links[url]}')
     
     logger.info(f'-----> {name} - contatenate all df links scraped before')
     individual_ads_data = concatenate_dfs(f"data/{name}/make_model_ads_data/",  True,logger,bucket,storage_type)
