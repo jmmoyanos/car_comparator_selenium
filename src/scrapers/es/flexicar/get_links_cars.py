@@ -12,10 +12,10 @@ from tqdm import tqdm #progress bar
 from datetime import datetime
 import os
 import glob
-from src.utils import start_driver_selenium
+from src.utils import start_driver_selenium, list_files, write_csv, read_csv,getBucket
 import concurrent.futures
 
-def scrape_links_for_one_make_model(option, make_model_dat,sleep, save_to_csv):
+def scrape_links_for_one_make_model(option, make_model_dat,sleep, save_to_csv,bucket,storage_type,logger):
 
     year_min = make_model_dat['year_min']
     year_max = make_model_dat['year_max']
@@ -73,30 +73,30 @@ def scrape_links_for_one_make_model(option, make_model_dat,sleep, save_to_csv):
             links_on_one_page_df = pd.merge(links_on_one_page_df, make_model_input_data, how = 'left', left_on= ['make_model_link'], right_on = ['link'])
             
     if save_to_csv:
-            #check if folder exists and if not create it
-            if not os.path.exists('data/flexicar/make_model_ads_links'):
-                os.makedirs('data/flexicar/make_model_ads_links')
-
-            links_on_one_page_df.to_csv(str('./data/flexicar/make_model_ads_links/links_on_one_page_df' + datetime_string + '.csv'), index = False)
+        write_csv(storage_type, links_on_one_page_df,str(f'data/{name}/make_model_ads_links/links_on_one_page_df' + datetime_string + '.csv'),bucket)
 
     driver.quit()
     return(links_on_one_page_df)
 
-def multiple_link_on_multiple_pages_data(option, num_workers,make_model_dat, sleep, save_to_csv):
+def multiple_link_on_multiple_pages_data(option, num_workers,make_model_dat, sleep, save_to_csv,bucket,storage_type,logger):
 
     multiple_make_model_data = []
     len_of_links = make_model_dat.shape[0]
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
     # Start the load operations and mark each future with its URL
-        future_to_url = {executor.submit(scrape_links_for_one_make_model, option, make_model_dat.loc[i], sleep,save_to_csv): i for i in range(len_of_links)}
+        future_to_url = {executor.submit(scrape_links_for_one_make_model, option, make_model_dat.loc[i], sleep,save_to_csv,bucket,storage_type,logger): i for i in range(len_of_links)}
         for future in tqdm(concurrent.futures.as_completed(future_to_url),"Progress: "):
-            
+            url = future_to_url[future]
+            link = make_model_dat.loc[url]['link']
             try:
                 one_page_adds = future.result()
                 multiple_make_model_data.append(one_page_adds)
+                logger.info(f'-----> {name} - scraping link page {url}  - {link}')
+
             except Exception as exc:
-               print('generated an exception:')
+              logger.error(f'-----> {name} - scraping link page {url}  - {link}')
+
                #continue
             
     multiple_make_model_data = pd.concat(multiple_make_model_data)
@@ -104,35 +104,52 @@ def multiple_link_on_multiple_pages_data(option, num_workers,make_model_dat, sle
     return(multiple_make_model_data)
 
 # concatenate the dataframes in one folder to get one file (with different columns)
-def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
+def concatenate_dfs(indir, save_to_csv,bucket,logger,storage_type):
     
 
-    fileList=glob.glob(str(str(indir) + "*.csv"))
-    print("Found this many CSVs: ", len(fileList), " In this folder: ", str(os.getcwd()) + "/" + str(indir))
+    # fileList=glob.glob(str(str(indir) + "*.csv"))
 
-    output_file = pd.concat([pd.read_csv(filename) for filename in fileList])
+    fileList = list_files(storage_type, indir, bucket)
 
+    dfs = [read_csv(storage_type, path, bucket) for path in fileList]
+
+    output_file = pd.concat(dfs)
+
+    logger.info(f'-----> {name} - Found this many CSVs: {len(fileList)} In this folder: {str(indir)}')
+   
     cols = list(set(output_file.columns) - set(['download_date_time']))
     output_file = output_file.drop_duplicates(subset=cols,keep='last')
 
     if save_to_csv:
-        output_file.to_csv("data/flexicar/make_model_ads_links_concatinated.csv", index=False)
-
-    if save_to_pickle:
-        output_file.to_pickle("data/flexicar/make_model_ads_links_concatinated.pkl")
+        logger.info(f'-----> {name} - saving concate df links')
+        # output_file.to_csv("data/mobile_de/make_model_ads_links_concatinated.csv", index=False)
+        write_csv(storage_type,output_file,f"data/{name}/make_model_ads_links_concatinated.csv",bucket)
 
     return(output_file)
 
-
 # if __name__ == "__main__":
-def main(option,num_workers):
+def main(option,num_workers, logger, storage_type):
 
-    make_model_dat = pd.read_csv('./data/flexicar/make_and_model_links.csv')
-    
+    try: 
+        global name
+        name='flexicar'
         
-    multi_data = multiple_link_on_multiple_pages_data(option,num_workers,make_model_dat,
-                                                      10, 
-                                                      True)
+        logger.info(f'-----> {name} - reading make_and_model_links')
+        
+        bucket = getBucket(storage_type)
 
-    make_model_ads_data = concatenate_dfs(indir= "data/flexicar/make_model_ads_links/", save_to_csv = True, save_to_pickle = False)
+        make_model_dat = read_csv(storage_type,f'data/{name}/make_and_model_links.csv', bucket)
+        
+        logger.info(f'-----> {name} - calling multiple_link_on_multiple_pages_data')  
+        multiple_link_on_multiple_pages_data(option,num_workers,make_model_dat,
+                                                        1, 
+                                                        True,bucket,storage_type,logger)
+
+        logger.info(f'-----> {name} - calling concatenate_dfs')  
+        concatenate_dfs(indir= f"data/{name}/make_model_ads_links/", save_to_csv = True , bucket=bucket,logger=logger, storage_type=storage_type)
+        logger.info(f'-----> {name}  - links ended correctly')
+
+    except Exception as e:
+
+        logger.error(f'-----> {name}  - links ended with error {e}')
     

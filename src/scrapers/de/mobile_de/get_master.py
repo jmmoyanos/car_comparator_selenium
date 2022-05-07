@@ -10,11 +10,12 @@ import numpy as np
 import re
 from random import randrange
 from tqdm import tqdm #progress bar
-from src.utils import start_driver_selenium , get_notion_database
+from src.utils import start_driver_selenium , get_notion_database, read_csv, write_csv, getBucket
 import os
 import pandas as pd
+from src.storage import GStorage
 
-def get_all_make_model(option,mobile_de_eng_base_link, save_filename, df_cars,logger):
+def get_all_make_model(option,mobile_de_eng_base_link, save_filename, df_cars,bucket,storage_type,logger):
 
     logger.info(f'-----> {name}  - getting the master makes links')
     list_cars = df_cars['Name'].unique().tolist()
@@ -114,7 +115,7 @@ def get_all_make_model(option,mobile_de_eng_base_link, save_filename, df_cars,lo
     car_data_base = car_data_base.merge(df_cars, on='Name', how='inner')
 
     if len(save_filename) > 0:
-        car_data_base.to_csv(save_filename, encoding='utf-8', index=False)
+        write_csv(storage_type,car_data_base,save_filename,bucket)
         logger.info(f'-----> {name}  - saving {save_filename}')
 
     
@@ -129,29 +130,34 @@ def get_all_make_model(option,mobile_de_eng_base_link, save_filename, df_cars,lo
 
 
 #if __name__ == "__main__":
-def main(option,logger):
-
-    df_cars = get_notion_database('mobile_de').astype(str).sort_values(by='Name').reset_index(drop=True)
-
-    global name
-    name = 'mobile_de'
-
-
-    if not os.path.exists('data/mobile_de'):
-            os.makedirs('data/mobile_de')
+def main(option,logger,storage_type):
 
     try:
-        df = pd.read_csv('data/mobile_de/make_and_model_links.csv')
-        df_cars_check = df[list(df_cars.columns)].astype(str).sort_values(by='Name').reset_index(drop=True)
 
-    except:
-        df_cars_check = pd.DataFrame()
-        logger.info(f'-----> {name} master not found')
+        df = get_notion_database('mobile_de').astype(str).sort_values(by='Name').reset_index(drop=True)
 
+        global name
+        name = 'mobile_de'
 
-    if not df_cars.equals(df_cars_check):
-        get_all_make_model( option,
-                            "https://www.mobile.de/?lang=en", 
-                            "data/mobile_de/make_and_model_links.csv",
-                            df_cars,
-                            logger)
+        bucket = getBucket(storage_type)
+
+        try:
+            df_cars_check = read_csv(storage_type,'data/mobile_de/make_and_model_links.csv',bucket)
+            df_cars_check = df_cars_check[list(df.columns)].astype(str).sort_values(by='Name').reset_index(drop=True)
+
+        except:
+            df_cars_check = pd.DataFrame()
+            logger.info(f'-----> {name} master not found')
+
+        if not df.equals(df_cars_check):
+            get_all_make_model( option,
+                                "https://www.mobile.de/?lang=en", 
+                                "data/mobile_de/make_and_model_links.csv",
+                                df,
+                                bucket,
+                                storage_type,
+                                logger)
+        logger.info(f'-----> {name}  - master ended correctly')
+
+    except Exception as e:
+        logger.error(f'-----> {name}  - master ended correctly {e}')

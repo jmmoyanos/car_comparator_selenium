@@ -9,7 +9,7 @@ services:
     image: local-seleniarm/node-chromium 
     shm_size: 0.5gb
     deploy:
-      replicas: 4
+      replicas: 6
       placement:
         max_replicas_per_node: 1
     depends_on:
@@ -31,17 +31,17 @@ services:
       - "4443:4443"
       - "4444:4444"
 
-  # scraper: 
-  #   build:
-  #      context: .
-  #   #image: car_scraper
-  #   depends_on:
-  #     - selenium-hub
-  #     - chrome1-a
-  #   networks:
-  #     - sel-network
-  #   volumes:
-  #     - ./data:/opt/app/data
-  #     - ./logs:/opt/app/logs
-  #   command: ["/bin/sh", "-ec", "sleep 1000000"]
+  scraper: 
+    build:
+       context: .
+    #image: car_scraper
+    depends_on:
+      - selenium-hub
+      - chrome1-a
+    networks:
+      - sel-network
+    volumes:
+      - ./data:/opt/app/data
+      - ./logs:/opt/app/logs
+    command: ["/bin/sh", "-ec", "sleep 1000000"]
     

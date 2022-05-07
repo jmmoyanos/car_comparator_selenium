@@ -108,7 +108,8 @@ follow instructions [docker-selenium](https://github.com/SeleniumHQ/docker-selen
 - [X] Dockerize
 - [X] requirements update
 - [X] async functions for multiple scrap request - links and data
-- [ ] improve main
-- [ ] logger
+- [X] improve main
+- [x] logger mobile_de
+- [ ] logger flexicar
 - [ ] Transform and Load Data
 - [ ] Wallapop

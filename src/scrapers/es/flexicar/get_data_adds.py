@@ -13,7 +13,7 @@ from datetime import datetime
 import os
 import glob
 import pickle #for saving data
-from src.utils import start_driver_selenium
+from src.utils import start_driver_selenium, list_files, write_csv, read_csv,getBucket
 import concurrent.futures
 
 def clean_data(data):
@@ -28,7 +28,7 @@ def clean_data(data):
     data['price_category'] = data['Price'].str.extract('([a-zA-Z]+)')
     return data
 
-def get_ad_data(option, ad_link, sleep_time ,save_to_csv, save_to_pickle):
+def get_ad_data(option, ad_link, sleep_time ,save_to_csv,logger,bucket,storage_type):
     driver = start_driver_selenium(option)
 
     #get the number of pages
@@ -73,39 +73,37 @@ def get_ad_data(option, ad_link, sleep_time ,save_to_csv, save_to_pickle):
     df['download_date_time'] = datetime_string
 
     #save the dataframe if save_to_csv is True
+     #save the dataframe if save_to_csv is True
     if save_to_csv:
-        #check if folder exists and if not create it
-        if not os.path.exists('data/flexicar/make_model_ads_data'):
-            os.makedirs('data/flexicar/make_model_ads_data')
-
-        df.to_csv(str('data/flexicar/make_model_ads_data/links_on_one_page_df' + datetime_string + '.csv'), index = False)
-
-    if save_to_pickle:
-        if not os.path.exists('data/flexicar/make_model_ads_data'):
-            os.makedirs('data/flexicar/make_model_ads_data')
-
-        df.to_pickle('data/flexicar/make_model_ads_data/links_on_one_page_df' + datetime_string + "pkl")
+        write_csv(storage_type,df,str(f'data/{name}/make_model_ads_data/links_on_one_page_df' + datetime_string + '.csv'),bucket)
     return df
 
 # concatenate the dataframes in one folder to get one file (with different columns)
-def concatenate_dfs(indir, save_to_csv = True, save_to_pickle = True):
+def concatenate_dfs(indir, save_to_csv,logger,bucket,storage_type):
     
+    fileList = list_files(storage_type, indir, bucket)
 
-    fileList=glob.glob(str(str(indir) + "*.csv"))
-    print("Found this many CSVs: ", len(fileList), " In this folder: ", str(os.getcwd()) + "/" + str(indir))
-    output_file = pd.concat([pd.read_csv(filename) for filename in fileList])
+    dfs = [read_csv(storage_type, path, bucket) for path in fileList]
+
+    output_file = pd.concat(dfs)
+
+    logger.info(f'-----> {name} - Found this many CSVs: {len(fileList)} In this folder: {str(indir)}')
+
+
     cols = list(set(output_file.columns) - set(['download_date_time']))
     output_file = output_file.drop_duplicates(subset=cols,keep='last')
 
     if save_to_csv:
-        output_file.to_csv("data/flexicar/make_model_ads_concatinated.csv", index=False)
+        try:
+            write_csv(storage_type,output_file,f"data/{name}/make_model_ads_concatinated.csv",bucket)
+            logger.info(f'-----> {name} - saving data/{name}/make_model_ads_concatinated.csv')
+        except:
+            logger.error(f'-----> {name} - saving data/{name}/make_model_ads_concatinated.csv')
 
-    if save_to_pickle:
-        output_file.to_pickle("data/flexicar/make_model_ads_concatinated.pkl")
+
     output_file.reset_index(drop=True, inplace=True)
 
     return(output_file)
-
 # merge the individual ads data with the make_model_ads_data_latest and keep only the latest download date
 def merge_make_model_keep_latest(data, make_model_ads_data):
     latest_scrape = data.groupby(['link'], dropna=True).agg(number_of_ads=('link', 'count'), latest_scrape=('download_date_time', 'max'))
@@ -126,10 +124,16 @@ def merge_make_model_keep_latest(data, make_model_ads_data):
 
 
 # if __name__ == '__main__' :
-def main(option,num_workers):
+def main(option,num_workers,logger, storage_type):
 
-    make_model_ads_data = pd.read_csv("./data/flexicar/make_model_ads_links_concatinated.csv")
+    global name
+    name='flexicar'
+    bucket = getBucket(storage_type)
 
+    
+    logger.info(f'-----> {name} - reading make_model_ads_links_concatinated')
+    make_model_ads_data = read_csv(storage_type,f"data/{name}/make_model_ads_links_concatinated.csv", bucket)
+    
     latest_scrape = make_model_ads_data.groupby(['car_make', 'car_model'], dropna=False).agg(number_of_ads=('ad_link', 'count'), latest_scrape=('download_date_time', 'max'))
     latest_scrape = latest_scrape.reset_index()
     
@@ -140,25 +144,36 @@ def main(option,num_workers):
     make_model_ads_data_latest = make_model_ads_data_latest.reset_index(drop=True)
     # drop the latest_scrape column
     make_model_ads_data_latest = make_model_ads_data_latest.drop(columns = ['latest_scrape'])
+    logger.info(f'-----> {name} - getting ad data of the last scrap')
+
 
     len_of_links = len(make_model_ads_data_latest)
+    ad_links  = make_model_ads_data_latest['ad_link'].tolist()
+    make_model_link  = make_model_ads_data_latest['make_model_link'].tolist()
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
-    # Start the load operations and mark each future with its URL
-        future_to_url = {executor.submit(get_ad_data, option, make_model_ads_data_latest['ad_link'][i], 5,True,False): i for i in range(len_of_links)}
-        for future in tqdm(concurrent.futures.as_completed(future_to_url),"Progress: "):
-            continue
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+    # # Start the load operations and mark each future with its URL
+    #     future_to_url = {executor.submit(get_ad_data, option, make_model_ads_data_latest['ad_link'][i], 5,True,logger,bucket,storage_type): i for i in range(len_of_links)}
+    #     for future in tqdm(concurrent.futures.as_completed(future_to_url),"Progress: "):
+    #         url = future_to_url[future]
+    #         try:
+    #             logger.info(f'-----> {name} - getting ad data - {ad_links[url]}')
+    #         except:
+    #             logger.error(f'-----> {name} - getting ad data - {ad_links[url]}')
+    
+    logger.info(f'-----> {name} - contatenate all df links scraped before')
+    individual_ads_data = concatenate_dfs(f"data/{name}/make_model_ads_data/",  True,logger,bucket,storage_type)
 
-    individual_ads_data = concatenate_dfs("./data/flexicar/make_model_ads_data/",  True, False)
-
-    ads_df = merge_make_model_keep_latest(data = individual_ads_data,make_model_ads_data = make_model_ads_data_latest)
+    print(make_model_ads_data_latest)
+    logger.info(f'-----> {name} - Merging data')
+    ads_df = merge_make_model_keep_latest(individual_ads_data,make_model_ads_data_latest)
     ads_df_clean = clean_data(data = ads_df)
 
-
-    if not os.path.exists('data/flexicar/final_data'):
-            os.makedirs('data/flexicar/final_data')
-
-    now = datetime.now() 
-    datetime_string = str(now.strftime("%Y%m%d_%H%M%S"))
-    ads_df_clean['audit_date'] = datetime_string
-    ads_df_clean.to_csv(f'./data/flexicar/final_data/scrap_mobilede_{datetime_string}.csv', index=False)
+    try:
+        now = datetime.now() 
+        datetime_string = str(now.strftime("%Y%m%d_%H%M%S"))
+        ads_df_clean['audit_date'] = datetime_string
+        write_csv(storage_type,ads_df_clean,f'data/{name}/final_data/scrap_{name}_{datetime_string}.csv',bucket)
+        logger.info(f'-----> {name} - Saving merged data onto /data/{name}/final_data/scrap_mobilede_{datetime_string}.csv')
+    except:
+        logger.error(f'-----> {name} - Saving merged data onto /data/{name}/final_data/scrap_mobilede_{datetime_string}.csv')

@@ -15,7 +15,7 @@ from datetime import datetime
 import os
 import glob
 import pickle #for saving data
-from src.utils import start_driver_selenium
+from src.utils import start_driver_selenium, list_files, write_csv, read_csv,getBucket
 import concurrent.futures
 
 
@@ -37,7 +37,7 @@ def clean_data(data):
     data['price_category'] = data['Price'].str.extract('([a-zA-Z]+)')
     return data
 
-def get_ad_data(option, ad_link,make_model_link, sleep_time, save_to_csv,logger):
+def get_ad_data(option, ad_link,make_model_link, sleep_time, save_to_csv,logger,bucket,storage_type):
     
     try:
         driver = start_driver_selenium(option)
@@ -105,11 +105,7 @@ def get_ad_data(option, ad_link,make_model_link, sleep_time, save_to_csv,logger)
 
         #save the dataframe if save_to_csv is True
         if save_to_csv:
-            #check if folder exists and if not create it
-            if not os.path.exists('data/mobile_de/make_model_ads_data'):
-                os.makedirs('data/mobile_de/make_model_ads_data')
-
-            df.to_csv(str('data/mobile_de/make_model_ads_data/links_on_one_page_df' + datetime_string + '.csv'), index = False)
+            write_csv(storage_type,df,str('data/mobile_de/make_model_ads_data/links_on_one_page_df' + datetime_string + '.csv'),bucket)
 
         logger.info(f'-----> {name} - saving data from {ad_link}%3Flang%3Den&lang=en')
 
@@ -120,18 +116,23 @@ def get_ad_data(option, ad_link,make_model_link, sleep_time, save_to_csv,logger)
     return(df)
 
 # concatenate the dataframes in one folder to get one file (with different columns)
-def concatenate_dfs(indir, save_to_csv,logger):
+def concatenate_dfs(indir, save_to_csv,logger,bucket,storage_type):
     
+    fileList = list_files(storage_type, indir, bucket)
 
-    fileList=glob.glob(str(str(indir) + "*.csv"))
-    print("Found this many CSVs: ", len(fileList), " In this folder: ", str(os.getcwd()) + "/" + str(indir))
-    output_file = pd.concat([pd.read_csv(filename) for filename in fileList])
+    dfs = [read_csv(storage_type, path, bucket) for path in fileList]
+
+    output_file = pd.concat(dfs)
+
+    logger.info(f'-----> {name} - Found this many CSVs: {len(fileList)} In this folder: {str(indir)}')
+
+
     cols = list(set(output_file.columns) - set(['download_date_time']))
     output_file = output_file.drop_duplicates(subset=cols,keep='last')
 
     if save_to_csv:
         try:
-            output_file.to_csv("data/mobile_de/make_model_ads_concatinated.csv", index=False)
+            write_csv(storage_type,output_file,"data/mobile_de/make_model_ads_concatinated.csv",bucket)
             logger.info(f'-----> {name} - saving data/mobile_de/make_model_ads_concatinated.csv')
         except:
             logger.error(f'-----> {name} - saving data/mobile_de/make_model_ads_concatinated.csv')
@@ -162,13 +163,15 @@ def merge_make_model_keep_latest(data,make_model_ads_data_latest):
 
 
 # if __name__ == '__main__' :
-def main(option,num_workers,logger):
+def main(option,num_workers,logger, storage_type):
 
     global name
     name='mobile_de'
+    bucket = getBucket(storage_type)
+
     
     logger.info(f'-----> {name} - reading make_model_ads_links_concatinated')
-    make_model_ads_data = pd.read_csv("./data/mobile_de/make_model_ads_links_concatinated.csv")
+    make_model_ads_data = read_csv(storage_type,"data/mobile_de/make_model_ads_links_concatinated.csv", bucket)
 
     latest_scrape = make_model_ads_data.groupby(['car_make', 'car_model'], dropna=False).agg(number_of_ads=('ad_link', 'count'), latest_scrape=('download_date_time', 'max'))
     latest_scrape = latest_scrape.reset_index()
@@ -189,7 +192,7 @@ def main(option,num_workers,logger):
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
     # Start the load operations and mark each future with its URL
-        future_to_url = {executor.submit(get_ad_data, option, ad_links[i],make_model_link[i], 5,True,logger): i for i in range(len_of_links)}
+        future_to_url = {executor.submit(get_ad_data, option, ad_links[i],make_model_link[i], 5,True,logger,bucket,storage_type): i for i in range(len_of_links)}
         for future in tqdm(concurrent.futures.as_completed(future_to_url),"Progress: "):
             url = future_to_url[future]
             try:
@@ -198,22 +201,17 @@ def main(option,num_workers,logger):
                 logger.error(f'-----> {name} - getting ad data - {make_model_link[url]}')
     
     logger.info(f'-----> {name} - contatenate all df links scraped before')
-    individual_ads_data = concatenate_dfs("./data/mobile_de/make_model_ads_data/",  True,logger)
+    individual_ads_data = concatenate_dfs("./data/mobile_de/make_model_ads_data/",  True,logger,bucket,storage_type)
 
     logger.info(f'-----> {name} - Merging data')
     ads_df = merge_make_model_keep_latest(data = individual_ads_data, make_model_ads_data_latest = make_model_ads_data_latest)
     ads_df_clean = clean_data(data = ads_df)
 
-
-    if not os.path.exists('data/mobile_de/final_data'):
-            logger.info(f'-----> {name} - Creating folder data/mobile_de/final_data')
-            os.makedirs('data/mobile_de/final_data')
-
     try:
         now = datetime.now() 
         datetime_string = str(now.strftime("%Y%m%d_%H%M%S"))
         ads_df_clean['audit_date'] = datetime_string
-        ads_df_clean.to_csv(f'./data/mobile_de/final_data/scrap_mobilede_{datetime_string}.csv', index=False)
+        write_csv(storage_type,ads_df_clean,f'./data/mobile_de/final_data/scrap_mobilede_{datetime_string}.csv',bucket)
         logger.info(f'-----> {name} - Saving merged data onto /data/mobile_de/final_data/scrap_mobilede_{datetime_string}.csv')
     except:
         logger.error(f'-----> {name} - Saving merged data onto /data/mobile_de/final_data/scrap_mobilede_{datetime_string}.csv')

@@ -12,7 +12,7 @@ import os
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from src.utils import get_notion_database, start_driver_selenium
+from src.utils import start_driver_selenium , get_notion_database, read_csv, write_csv, getBucket
 import concurrent.futures
 
 
@@ -79,19 +79,27 @@ def get_car_model_page(i,option,num_workers,flexicar_base_link):
 
     return make,list_
 
-def get_all_make_model(option, num_workers,flexicar_base_link, save_filename, df_cars):
+def get_all_make_model(option, num_workers,flexicar_base_link, save_filename, df_cars, bucket,storage_type,logger):
 
     lista_makes = []
     lista_models = []
+
+    logger.info(f'-----> {name}  - getting the master makes links')
+
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
     # Start the load operations and mark each future with its URL
         future_to_url = {executor.submit(get_car_model_page,i,option,num_workers,flexicar_base_link): i for i in range(45)}
         for future in tqdm(concurrent.futures.as_completed(future_to_url),"Progress: "):
-                car_make, lista_models_id = future.result()
-                if (car_make!= '' and lista_models_id != []):
-                    lista_makes.append(car_make)
-                    lista_models.append(lista_models_id)
+                try:
+                    car_make, lista_models_id = future.result()
+                    if (car_make!= '' and lista_models_id != []):
+                        lista_makes.append(car_make)
+                        lista_models.append(lista_models_id)
+                        logger.info(f'-----> {name}  - getting the master makes links {car_make}')
+                except:
+                    logger.error(f'-----> {name}  - getting the master makes links {car_make}')
+
 
     car_base_make_data = pd.DataFrame(
     {'car_make': lista_makes,
@@ -126,35 +134,56 @@ def get_all_make_model(option, num_workers,flexicar_base_link, save_filename, df
 
 
     if len(save_filename) > 0:
-        car_data_base.to_csv(save_filename, encoding='utf-8', index=False)
+        try:
+            write_csv(storage_type,car_data_base,save_filename,bucket)
+            logger.info(f'-----> {name}  - saving {save_filename}')
+        except:
+            logger.error(f'-----> {name}  - saving {save_filename}')
+
+
+
 
     return(car_data_base)
 
 
 
 # if __name__ == "__main__":
-def main(option,num_workers):
-
-    df_cars = get_notion_database('flexicar').astype(str).sort_values(by='Name').reset_index(drop=True)
-
-    name = 'flexicar'
-
-    if not os.path.exists('data/flexicar'):
-            os.makedirs('data/flexicar')
-
-    try:
-        df = pd.read_csv('data/flexicar/make_and_model_links.csv')
-        df_cars_check = df[list(df_cars.columns)].astype(str).sort_values(by='Name').reset_index(drop=True)
-        
-
-    except:
-        df_cars_check = pd.DataFrame()
-        print('master not found')
-
+def main(option,num_workers, logger, storage_type):
     
-    if not df_cars.equals(df_cars_check):
-        print("entro")
-        get_all_make_model( option,num_workers,
-                            "https://www.flexicar.es/", 
-                            "data/flexicar/make_and_model_links.csv",
-                            df_cars)
+    try:
+
+        df = get_notion_database('flexicar').astype(str).sort_values(by='Name').reset_index(drop=True)
+
+        global name
+        name = 'flexicar'
+
+        bucket = getBucket(storage_type)
+
+        try:
+            df_cars_check = read_csv(storage_type,'data/flexicar/make_and_model_links.csv',bucket)
+            df_cars_check = df_cars_check[list(df.columns)].astype(str).sort_values(by='Name').reset_index(drop=True)
+            
+
+        except:
+            df_cars_check = pd.DataFrame()
+            logger.info(f'-----> {name} master not found')
+
+
+
+        
+        if not df.equals(df_cars_check):
+            print("entro")
+            get_all_make_model( option,num_workers,
+                                "https://www.flexicar.es/", 
+                                "data/flexicar/make_and_model_links.csv",
+                                df,
+                                bucket,
+                                storage_type,
+                                logger)
+        logger.info(f'-----> {name}  - master ended correctly')
+    
+    except Exception as e:
+
+        logger.error(f'-----> {name}  - master ended {e}')
+
+

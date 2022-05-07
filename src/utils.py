@@ -8,6 +8,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import pandas as pd
+from src.storage import GStorage
+import glob
+
+
 
 def read_secrets_yaml():
 
@@ -57,3 +61,43 @@ def start_driver_selenium(option):
         driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
     
     return driver
+
+
+def write_csv(type_, df,path,bucket=None):
+    if type_ == 'local':
+        path_dir = path.split('/')[:-1]
+        path_dir = "/".join(path_dir)
+        if not os.path.exists(path_dir):
+            os.makedirs(path_dir)
+
+        df.to_csv(path, encoding='utf-8', index=False)
+    
+    elif type_ == 'gstorage':
+         bucket.write_csv_df(path,df)
+
+def read_csv(type_, path, bucket=None):
+    if type_ == 'local':
+        return pd.read_csv(path, encoding='utf-8')
+    
+    elif type_ == 'gstorage':
+
+         return bucket.read_csv(path)
+
+def list_files(type_, path, bucket):
+
+    if type_ == 'local':
+        return glob.glob(str(str(path) + "*.csv"))
+
+    elif type_ == 'gstorage':
+         path = path.split('/')
+         return  list(bucket.list_dir(path[1],path[2]))
+
+
+def getBucket(type_):
+
+    if type_ == 'local':
+        return None
+    elif type_ == 'gstorage':
+        return  GStorage('car_comparator')
+
+

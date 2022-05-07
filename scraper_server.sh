@@ -1,9 +1,7 @@
 
 #!/bin/bash -x
 
-
 # build images for node-chrome for arm
-
 docker_chrome_arm=($(docker images | grep local-seleniarm/node-chromium))
 
 
@@ -17,21 +15,21 @@ fi
 
 # docker compose up containers 
 echo "docker compose up"
-docker-compose build
-docker-compose up -d 
+docker-compose -f docker-compose_server.yml build
+docker-compose -f docker-compose_server.yml up -d 
 
 sleep 25
 
 echo "flexicar"
 
-docker exec car_cormparator-scraper-1 python main.py -r docker -s flexicar
+docker exec car_cormparator_scraper_1 python main.py -r docker -s flexicar -n 3 -st gstorage
 
 sleep 5 
 
 echo "mobile_de"
 
-docker exec car_cormparator-scraper-1 python main.py -r docker -s mobile_de
+docker exec car_cormparator-scraper-1 python main.py -r docker -s mobile_de -n 3 -st gstorage
 
 # docker down
 
-docker-compose down
+docker-compose -f -f docker-compose_server.yml down
