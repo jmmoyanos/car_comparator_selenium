@@ -36,3 +36,4 @@ jobs:
             crontab -r
             chmod +x ./car_comparator_selenium/cron.sh
             ./car_comparator_selenium/cron.sh
+            cp -r secrets/ car_comparator_selenium/src/
