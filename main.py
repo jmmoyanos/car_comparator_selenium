@@ -9,15 +9,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "-s",
     "--site",
-    help="website namesto scrape second hand cars separated by ,",
-    default=['flexicar,mobile_de']
+    help="website namesto scrape second",
+    choices=['flexicar', 'mobile_de']
 )
 parser.add_argument(
     "-r",
     "--runtime",
     help="selenium runs on local machine or in docker selenium grid chrome standalone",
     required=True,
-    default='local'
+    default='local',
+    choices = ["docker","docker_local","local"]
 )
 parser.add_argument(
     "-n",
@@ -32,7 +33,8 @@ parser.add_argument(
     "--storage",
     help="Batch size of links pages scraped simultaneously.",
     required=False,
-    default="local"
+    default="local",
+    choices = ["local","gstorage"]
 )
 
 now = datetime.now() 
@@ -51,7 +53,7 @@ args = parser.parse_args()
 
 print(args.runtime)
 
-if 'flexicar' in args.site:
+if 'flexicar' == args.site:
     from src.scrapers.es.flexicar import get_data_adds,get_links_cars,get_master
     print("flexicar")
     print("master")
@@ -61,7 +63,7 @@ if 'flexicar' in args.site:
     print("data")
     get_data_adds.main(args.runtime,int(args.num_workers),logger, args.storage)
 
-if 'mobile_de' in args.site:
+if 'mobile_de' == args.site:
     from src.scrapers.de.mobile_de import get_data_adds,get_links_cars,get_master
     print("mobile_de")
     print("master")

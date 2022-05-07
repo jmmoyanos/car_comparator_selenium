@@ -62,6 +62,8 @@ pip install -r requirements.txt
 
 ```bash
 export GOOGLE_APPLICATION_CREDENTIALS="/path/client_secrets.json"
+export GOOGLE_APPLICATION_CREDENTIALS="/root/car_cormparator/src/secrets/client_secrets.json"
+
 ```
 
 ### Run the application

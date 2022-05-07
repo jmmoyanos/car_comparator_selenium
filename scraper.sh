@@ -24,13 +24,13 @@ sleep 25
 
 echo "flexicar"
 
-docker exec car_cormparator-scraper-1 python main.py -r docker -s flexicar
+docker exec car_comparator_selenium-scraper-1 python main.py -r docker -s flexicar
 
 sleep 5 
 
 echo "mobile_de"
 
-docker exec car_cormparator-scraper-1 python main.py -r docker -s mobile_de
+docker exec car_comparator_selenium-scraper-1 python main.py -r docker -s mobile_de
 
 # docker down
 

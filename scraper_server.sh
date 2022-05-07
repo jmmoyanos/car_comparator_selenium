@@ -22,13 +22,13 @@ sleep 25
 
 echo "flexicar"
 
-docker exec car_cormparator_scraper_1 python main.py -r docker -s flexicar -n 3 -st gstorage
+docker exec car_corparator_selenium_1 python main.py -r docker -s flexicar -n 3 -st gstorage
 
 sleep 5 
 
 echo "mobile_de"
 
-docker exec car_cormparator-scraper-1 python main.py -r docker -s mobile_de -n 3 -st gstorage
+docker exec car_corparator_selenium-scraper-1 python main.py -r docker -s mobile_de -n 3 -st gstorage
 
 # docker down
 
