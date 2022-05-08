@@ -31,9 +31,11 @@ jobs:
             ls -lr
             rm -rf car_comparator_selenium
             git clone https://github.com/jmmoyanos/car_comparator_selenium.git
-            mkdir ./car_comparator_selenium/logs
-            mkdir ./car_comparator_selenium/data
+            cd ./car_comparator_selenium
+            mkdir ./logs
+            mkdir ./data
             crontab -r
-            chmod +x ./car_comparator_selenium/cron.sh
-            ./car_comparator_selenium/cron.sh
+            chmod +x ./cron.sh
+            ./cron.sh
+            cd ..
             cp -r secrets/ car_comparator_selenium/src/
