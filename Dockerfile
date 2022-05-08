@@ -13,7 +13,7 @@ WORKDIR /opt/app
 RUN pip install -r requirements.txt
 RUN mkdir logs
 
-ENV GOOGLE_APPLICATION_CREDENTIALS=/opt/app/car_cormparator/src/secrets/client_secrets.json
+ENV GOOGLE_APPLICATION_CREDENTIALS=/opt/app/car_comparator_selenium/src/secrets/client_secrets.json
 
 
 
