@@ -11,6 +11,7 @@ COPY requirements.txt /opt/app/requirements.txt
 
 WORKDIR /opt/app
 RUN pip install -r requirements.txt
+RUN mkdir logs
 
 ENV GOOGLE_APPLICATION_CREDENTIALS=/root/car_cormparator/src/secrets/client_secrets.json
 
