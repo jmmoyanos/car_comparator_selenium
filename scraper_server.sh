@@ -32,4 +32,4 @@ docker exec car_comparator_selenium_scraper_1 python main.py -r docker -s mobile
 
 # docker down
 
-docker-compose -f -f docker-compose_server.yml down
+docker-compose -f docker-compose_server.yml down
