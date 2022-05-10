@@ -201,7 +201,7 @@ def main(option,num_workers,logger, storage_type):
                 logger.error(f'-----> {name} - getting ad data - {make_model_link[url]}')
     
     logger.info(f'-----> {name} - contatenate all df links scraped before')
-    individual_ads_data = concatenate_dfs("./data/mobile_de/make_model_ads_data/",  True,logger,bucket,storage_type)
+    individual_ads_data = concatenate_dfs("data/mobile_de/make_model_ads_data/",  True,logger,bucket,storage_type)
 
     logger.info(f'-----> {name} - Merging data')
     ads_df = merge_make_model_keep_latest(data = individual_ads_data, make_model_ads_data_latest = make_model_ads_data_latest)
@@ -211,7 +211,7 @@ def main(option,num_workers,logger, storage_type):
         now = datetime.now() 
         datetime_string = str(now.strftime("%Y%m%d_%H%M%S"))
         ads_df_clean['audit_date'] = datetime_string
-        write_csv(storage_type,ads_df_clean,f'./data/mobile_de/final_data/scrap_mobilede_{datetime_string}.csv',bucket)
+        write_csv(storage_type,ads_df_clean,f'data/mobile_de/final_data/scrap_mobilede_{datetime_string}.csv',bucket)
         logger.info(f'-----> {name} - Saving merged data onto /data/mobile_de/final_data/scrap_mobilede_{datetime_string}.csv')
     except:
         logger.error(f'-----> {name} - Saving merged data onto /data/mobile_de/final_data/scrap_mobilede_{datetime_string}.csv')
