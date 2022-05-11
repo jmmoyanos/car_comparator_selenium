@@ -106,7 +106,7 @@ def scrape_links_for_one_make_model(option,num_workers,make_model_dat,sleep, sav
                 links_on_multiple_pages.append(data)
                 logger.info(f'-----> {name} - number of buttons pages - {name_model} - {url}/{last_button_number} - {make_model_input_link + "&pageNumber=" + str(url)} ')
             except Exception as exc:
-                logger.error(f'-----> {name} - number of buttons pages - {name_model} - {url}/{last_button_number} - {exc}')
+                logger.error(f'-----> {name} - number of buttons pages - {name_model} - {url}/{last_button_number} - \n {exc}')
                
 
     flat_list = [item for sublist in links_on_multiple_pages for item in sublist]
@@ -146,8 +146,8 @@ def multiple_link_on_multiple_pages_data(option,num_workers,make_model_dat, slee
             one_page_adds = scrape_links_for_one_make_model(option,num_workers, make_model_dat.loc[i],
                                                            sleep,save_to_csv,bucket,storage_type,logger)
             multiple_make_model_data = pd.concat([multiple_make_model_data, one_page_adds], ignore_index=True)
-        except:
-            logger.error(f'-----> {name} - scraping link {i}  - {name_model} -{link}')
+        except Exception as exp:
+            logger.error(f'-----> {name} - scraping link {i}  - {name_model} -{link} \n {exp}')
 
     
     return(multiple_make_model_data)

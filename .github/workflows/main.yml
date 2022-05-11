@@ -29,6 +29,7 @@ jobs:
           password: ${{ secrets.password }}
           script: |
             ls -lr
+            cp -rp car_comparator_selenium/logs/ logs/
             rm -rf car_comparator_selenium
             git clone https://github.com/jmmoyanos/car_comparator_selenium.git
             cd ./car_comparator_selenium

@@ -97,8 +97,8 @@ def get_all_make_model(option, num_workers,flexicar_base_link, save_filename, df
                         lista_makes.append(car_make)
                         lista_models.append(lista_models_id)
                         logger.info(f'-----> {name}  - getting the master makes links {car_make}')
-                except:
-                    logger.error(f'-----> {name}  - getting the master makes links {car_make}')
+                except Exception as exp:
+                    logger.error(f'-----> {name}  - getting the master makes links {car_make} {exp}')
 
 
     car_base_make_data = pd.DataFrame(
@@ -137,8 +137,8 @@ def get_all_make_model(option, num_workers,flexicar_base_link, save_filename, df
         try:
             write_csv(storage_type,car_data_base,save_filename,bucket)
             logger.info(f'-----> {name}  - saving {save_filename}')
-        except:
-            logger.error(f'-----> {name}  - saving {save_filename}')
+        except Exception as exp:
+            logger.error(f'-----> {name}  - saving {save_filename} {exp}')
 
 
 
@@ -168,9 +168,6 @@ def main(option,num_workers, logger, storage_type):
             df_cars_check = pd.DataFrame()
             logger.info(f'-----> {name} master not found')
 
-
-
-        
         if not df.equals(df_cars_check):
             print("entro")
             get_all_make_model( option,num_workers,

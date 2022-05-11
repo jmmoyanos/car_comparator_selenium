@@ -157,7 +157,7 @@ def main(option,num_workers,logger, storage_type):
         for future in tqdm(concurrent.futures.as_completed(future_to_url),"Progress: "):
             url = future_to_url[future]
             try:
-                logger.info(f'-----> {name} - getting ad data - {ad_links[url]}')
+                logger.info(f'-----> {name} - getting ad data - {url}/{len_of_links} - {ad_links[url]}')
             except:
                 logger.error(f'-----> {name} - getting ad data - {ad_links[url]}')
     

@@ -196,9 +196,9 @@ def main(option,num_workers,logger, storage_type):
         for future in tqdm(concurrent.futures.as_completed(future_to_url),"Progress: "):
             url = future_to_url[future]
             try:
-                logger.info(f'-----> {name} - getting ad data - {make_model_link[url]}')
+                logger.info(f'-----> {name} -  {url}/{len_of_links} getting ad data - {ad_links[url]}')
             except:
-                logger.error(f'-----> {name} - getting ad data - {make_model_link[url]}')
+                logger.error(f'-----> {name} - getting ad data - {ad_links[url]}')
     
     logger.info(f'-----> {name} - contatenate all df links scraped before')
     individual_ads_data = concatenate_dfs("data/mobile_de/make_model_ads_data/",  True,logger,bucket,storage_type)
