@@ -108,12 +108,11 @@ def get_ad_data(option, ad_link,make_model_link, sleep_time, save_to_csv,logger,
             write_csv(storage_type,df,str('data/mobile_de/make_model_ads_data/links_on_one_page_df' + datetime_string + '.csv'),bucket)
 
         logger.info(f'-----> {name} - saving data from {ad_link}%3Flang%3Den&lang=en')
-
+        del df 
     except Exception as exp:
         logger.error(f'-----> {name} - {exp} -saving data from {ad_link}%3Flang%3Den&lang=en')
 
 
-    return(df)
 
 # concatenate the dataframes in one folder to get one file (with different columns)
 def concatenate_dfs(indir, save_to_csv,logger,bucket,storage_type):
