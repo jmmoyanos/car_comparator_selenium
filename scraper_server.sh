@@ -22,7 +22,7 @@ sleep 25
 
 echo "flexicar"
 
-docker exec car_comparator_selenium_scraper_1 python main.py -r docker -s flexicar -n 3 -st gstorage
+#docker exec car_comparator_selenium_scraper_1 python main.py -r docker -s flexicar -n 3 -st gstorage
 
 sleep 5 
 
